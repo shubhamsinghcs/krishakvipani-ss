@@ -1,0 +1,18 @@
+{
+  "name": "KrishakVipani — किसान का डिजिटल बाज़ार",
+  "short_name": "KrishakVipani",
+  "description": "मंडी भाव, मौसम, फसल स्कैनर और सरकारी योजनाएं।",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0fdf4",
+  "theme_color": "#15803d",
+  "lang": "hi",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

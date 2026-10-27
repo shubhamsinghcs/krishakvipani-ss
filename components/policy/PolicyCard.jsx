@@ -50,7 +50,7 @@ export default function PolicyCard({ policy }) {
             onClick={() => setBookmarked((prev) => !prev)}
             className="min-h-[44px] text-sm font-semibold text-brand-textMid transition active:scale-95"
           >
-            {bookmarked ? `🔖 ${t.common.bookmarked}` : `🔖 ${t.common.bookmark}`}
+            {bookmarked ? t.common.bookmarked : t.common.bookmark}
           </button>
           <a
             href={`https://www.google.com/search?q=${encodeURIComponent(policy.title)}`}

@@ -27,7 +27,7 @@ export default function MarketPage() {
       });
       const json = await res.json();
       if (json.success) {
-        alert("आपका ऑर्डर 🚀 सफलता पूर्वक बुक हो गया है!");
+        alert("आपका ऑर्डर सफलता पूर्वक बुक हो गया है!");
       } else {
         if (res.status === 401) setAuthError(json.message);
       }
@@ -41,9 +41,9 @@ export default function MarketPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4 overflow-x-hidden">
       <div>
-        <h1 className="text-2xl font-bold text-brand-textDark md:text-3xl">🛒 दुकान (बीज व खाद)</h1>
+        <h1 className="text-2xl font-bold text-brand-textDark md:text-3xl">दुकान (बीज व खाद)</h1>
         <p className="mt-1 text-sm text-brand-textMid">सस्ते और असली उत्पाद सीधे कंपनियों से।</p>
-        {authError && <p className="text-xs text-red-500 font-bold mt-2">⚠️ {authError}</p>}
+        {authError && <p className="text-xs text-red-500 font-bold mt-2">{authError}</p>}
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">

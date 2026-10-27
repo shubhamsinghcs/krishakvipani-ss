@@ -82,7 +82,10 @@ export default function ScannerPage() {
 
       {step === "CONFIRM_CROP" && result ? (
         <div className="rounded-2xl border border-green-100 bg-white p-6 shadow-md text-center">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Detected Crop: {result.crop_type || "Unknown"}</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Detected Crop: {result.crop?.name || "Unknown"}</h2>
+          {result.validation_confidence ? (
+            <p className="text-sm text-gray-600 mb-2">Validation Confidence: <span className="font-semibold">{result.validation_confidence}%</span></p>
+          ) : null}
           <p className="text-gray-600 mb-6">Is this correct? Proceed to analyze disease?</p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button

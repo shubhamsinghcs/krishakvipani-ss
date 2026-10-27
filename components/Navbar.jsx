@@ -2,13 +2,17 @@
 
 import Image from "next/image";
 import { useSidebar } from "@/lib/SidebarContext";
+import NotificationCenter from "./NotificationCenter";
 import { useLang } from "@/lib/LanguageContext";
 import { DEFAULT_REGION_CITY, DEFAULT_REGION_STATE } from "@/lib/regionDefaults";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const { toggleSidebar } = useSidebar();
   const { lang, changeLang, t } = useLang();
+  const [theme, setTheme] = useState(() => typeof window !== 'undefined' ? window.localStorage.getItem('theme') || 'light' : 'light');
   const regionLabel = `${DEFAULT_REGION_STATE}, ${DEFAULT_REGION_CITY}`;
+  useInitTheme(setTheme);
   const languageOptions = [
     { key: "en", label: "English" },
     { key: "hi", label: "हिंदी" },
@@ -77,8 +81,38 @@ export default function Navbar() {
               {regionLabel}
             </span>
           </div>
+          <div className="ml-2 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const next = theme === 'dark' ? 'light' : 'dark';
+                setTheme(next);
+                try { document.documentElement.classList.toggle('dark', next === 'dark'); window.localStorage.setItem('theme', next); } catch (e) {}
+              }}
+              aria-pressed={theme === 'dark'}
+              aria-label={theme === 'dark' ? 'Disable dark theme' : 'Enable dark theme'}
+              className="inline-flex items-center justify-center rounded-lg border border-white/30 bg-white/50 px-2 py-2 text-sm hover:bg-white/80"
+            >
+              {theme === 'dark' ? '🌙' : '🌞'}
+            </button>
+            <div>
+              <NotificationCenter />
+            </div>
+          </div>
         </div>
       </div>
     </header>
   );
+}
+
+// Initialize theme on client hydration
+function useInitTheme(setTheme) {
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem('theme');
+      const t = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      setTheme(t);
+      document.documentElement.classList.toggle('dark', t === 'dark');
+    } catch (e) {}
+  }, [setTheme]);
 }

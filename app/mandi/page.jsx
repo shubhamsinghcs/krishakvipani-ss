@@ -29,7 +29,7 @@ export default function MandiPage() {
     if (smartDistrict && district === "Patiala" && smartDistrict !== "Patiala") {
       setDistrict(smartDistrict);
     }
-  }, [smartDistrict]);
+  }, [smartDistrict, district]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);

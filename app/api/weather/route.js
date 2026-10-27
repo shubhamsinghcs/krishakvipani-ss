@@ -12,7 +12,7 @@ const WEATHER_FALLBACK = {
   humidity: 58,
   wind_speed: 14,
   condition: "साफ आसमान",
-  condition_icon: "☀️",
+  condition_icon: "clear",
   description: "हल्के बादल, मौसम सामान्य",
   alert: null,
   advisory: "मौसम अनुकूल है — खेती के लिए अच्छा दिन",
@@ -40,14 +40,14 @@ async function maybeNotifyRain(cityLabel, rainLikely) {
 }
 
 function mapCondition(weatherId) {
-  if (weatherId >= 200 && weatherId <= 232) return { condition: "आंधी-तूफान", icon: "⛈️" };
-  if (weatherId >= 300 && weatherId <= 321) return { condition: "बूंदाबांदी", icon: "🌦️" };
-  if (weatherId >= 500 && weatherId <= 531) return { condition: "बारिश", icon: "🌧️" };
-  if (weatherId >= 600 && weatherId <= 622) return { condition: "बर्फबारी", icon: "❄️" };
-  if (weatherId >= 700 && weatherId <= 781) return { condition: "धुंध/कोहरा", icon: "🌫️" };
-  if (weatherId === 800) return { condition: "साफ आसमान", icon: "☀️" };
-  if (weatherId >= 801 && weatherId <= 804) return { condition: "बादल", icon: "☁️" };
-  return { condition: "मौसम अपडेट", icon: "🌤️" };
+  if (weatherId >= 200 && weatherId <= 232) return { condition: "आंधी-तूफान", icon: "storm" };
+  if (weatherId >= 300 && weatherId <= 321) return { condition: "बूंदाबांदी", icon: "drizzle" };
+  if (weatherId >= 500 && weatherId <= 531) return { condition: "बारिश", icon: "rain" };
+  if (weatherId >= 600 && weatherId <= 622) return { condition: "बर्फबारी", icon: "snow" };
+  if (weatherId >= 700 && weatherId <= 781) return { condition: "धुंध/कोहरा", icon: "fog" };
+  if (weatherId === 800) return { condition: "साफ आसमान", icon: "clear" };
+  if (weatherId >= 801 && weatherId <= 804) return { condition: "बादल", icon: "clouds" };
+  return { condition: "मौसम अपडेट", icon: "partly-cloudy" };
 }
 
 function advisoryByWeather(temp, humidity, windSpeed, weatherId) {
@@ -86,7 +86,7 @@ function computeRainLikely(weatherId, hourlyAdvisory, forecast) {
   if (Array.isArray(forecast)) {
     const wet = forecast.some((f) => {
       const c = `${f.condition || ""}${f.condition_icon || ""}`;
-      return /बारिश|बूंदा|वर्षा|Rain|🌧|⛈|🌦/i.test(c);
+      return /बारिश|बूंदा|वर्षा|Rain/i.test(c);
     });
     if (wet) return { rainLikely: true, rainReason: "forecast_day_rain" };
   }

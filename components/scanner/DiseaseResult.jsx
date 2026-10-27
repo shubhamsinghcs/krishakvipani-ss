@@ -20,21 +20,28 @@ export default function DiseaseResult({ result }) {
   if (!result) return null;
 
   const shareToWhatsApp = () => {
-    const message = result.is_healthy
-      ? `${t.scanner.healthyTitle}\n${t.scanner.confidence}: ${result.confidence}%\nKrishakVipani`
-      : `🚨 ${result.disease}\n${t.scanner.confidence}: ${result.confidence}%\n${t.scanner.chemical}: ${result.chemical_remedy}\n${t.scanner.organic}: ${result.organic_remedy}\nKrishakVipani`;
+    const message = result.disease.is_healthy
+      ? `${t.scanner?.healthyTitle || "Crop Healthy"}\nCrop: ${result.crop.name}\nConfidence: ${result.disease.confidence}%\nDate: ${new Date(result.timestamp).toLocaleDateString()}\nKrishakVipani`
+      : `${result.disease.name}\nCrop: ${result.crop.name}\nSeverity: ${result.disease.severity}\nDate: ${new Date(result.timestamp).toLocaleDateString()}\n\n${result.disease.action_required}\n\nKrishakVipani`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
   };
 
-  if (result.is_healthy) {
+    if (result.disease.is_healthy) {
     return (
       <div className="mx-auto max-w-2xl space-y-4">
         <Card className="border-green-200 bg-green-50">
-          <h3 className="text-lg font-bold text-green-800">{t.scanner.healthyTitle}</h3>
-          <p className="mt-2 inline-flex rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-green-700">
-            {t.scanner.confidence}: {result.confidence}%
-          </p>
-          <p className="mt-3 text-sm leading-relaxed text-green-800 line-clamp-6">{t.scanner.healthyDesc}</p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-green-800">{t.scanner?.healthyTitle || "Crop is Healthy"}</h3>
+              <p className="mt-2 text-sm font-semibold text-green-700">{result.crop.name}</p>
+              <p className="mt-1 text-xs text-green-600">Stage: {result.crop.stage}</p>
+            </div>
+            <span className="inline-flex rounded-full bg-white px-3 py-1 text-sm font-bold text-green-700">
+              {result.disease.confidence}%
+            </span>
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-green-800">{t.scanner?.healthyDesc || "Your crop appears to be in good health. Continue regular monitoring."}</p>
+          <p className="mt-2 text-xs text-green-600">{new Date(result.timestamp).toLocaleDateString()}</p>
         </Card>
       </div>
     );
@@ -43,34 +50,41 @@ export default function DiseaseResult({ result }) {
   return (
     <div className="mx-auto max-w-2xl space-y-4 overflow-x-hidden">
       <Card className="border-red-200 bg-red-50">
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          <h3 className="text-lg font-bold text-red-800 sm:text-xl">🚨 {result.disease}</h3>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-red-800 sm:text-xl">{result.disease.name}</h3>
+            <p className="mt-1 text-sm font-semibold text-red-700">{result.crop.name} · Stage: {result.crop.stage}</p>
+          </div>
           <span
-            className={`inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-semibold ${severityClasses[result.severity] || severityClasses.Medium}`}
+            className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold ${severityClasses[result.disease.severity] || severityClasses.Medium}`}
           >
-            {result.severity}
+            {result.disease.severity}
           </span>
         </div>
-        <p className="mt-3 text-sm leading-relaxed text-red-900">
-          {t.scanner.confidence}: <span className="font-semibold">{result.confidence}%</span> · {t.scanner.crop}:{" "}
-          <span className="line-clamp-2 font-medium">{result.crop_type}</span>
-        </p>
-        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-red-100">
-          <div
-            className="h-full rounded-full bg-red-600 transition-[width]"
-            style={{ width: `${Math.min(Math.max(result.confidence || 0, 0), 100)}%` }}
-          />
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-sm font-semibold text-red-900">Confidence:</span>
+          <div className="flex-1 h-2 overflow-hidden rounded-full bg-red-100">
+            <div
+              className="h-full rounded-full bg-red-600 transition-[width]"
+              style={{ width: `${Math.min(Math.max(result.disease.confidence || 0, 0), 100)}%` }}
+            />
+          </div>
+          <span className="text-sm font-bold text-red-900">{result.disease.confidence}%</span>
         </div>
-        {result.crop_stage ? <p className="mt-2 text-xs text-red-800">Stage: {result.crop_stage}</p> : null}
-        {result.severity_reason ? (
-          <p className="mt-3 text-sm leading-relaxed text-red-900 line-clamp-4">{result.severity_reason}</p>
-        ) : null}
+        <p className="mt-2 text-xs text-red-600">{new Date(result.timestamp).toLocaleDateString()}</p>
       </Card>
 
+      {result.disease.action_required && (
+        <Card className="border-orange-300 bg-orange-50">
+          <h4 className="text-base font-bold text-orange-800">Action Required</h4>
+          <p className="mt-2 text-sm leading-relaxed text-orange-900">{result.disease.action_required}</p>
+        </Card>
+      )}
+
       <Card className="border-orange-200 bg-white">
-        <h4 className="text-base font-semibold text-brand-textDark">{t.scanner.symptoms}</h4>
+        <h4 className="text-base font-semibold text-brand-textDark">Symptoms</h4>
         <ul className="mt-2 list-inside list-disc space-y-1 text-sm leading-relaxed text-gray-800">
-          {(result.symptoms || []).map((symptom, idx) => (
+          {(result.disease.symptoms || []).map((symptom, idx) => (
             <li key={`${symptom}-${idx}`} className="line-clamp-3">
               {symptom}
             </li>
@@ -79,18 +93,18 @@ export default function DiseaseResult({ result }) {
       </Card>
 
       <Card className="border-orange-200 bg-orange-50">
-        <h4 className="text-base font-semibold text-orange-800">{t.scanner.chemical}</h4>
-        <p className="mt-2 text-sm leading-relaxed text-gray-800 line-clamp-6">{result.chemical_remedy}</p>
+        <h4 className="text-base font-semibold text-orange-800">Chemical Treatment</h4>
+        <p className="mt-2 text-sm leading-relaxed text-gray-800 line-clamp-6">{result.disease.chemical_remedy}</p>
       </Card>
 
       <Card className="border-green-200 bg-green-50">
-        <h4 className="text-base font-semibold text-green-800">{t.scanner.organic}</h4>
-        <p className="mt-2 text-sm leading-relaxed text-gray-800 line-clamp-6">{result.organic_remedy}</p>
+        <h4 className="text-base font-semibold text-green-800">Organic Alternative</h4>
+        <p className="mt-2 text-sm leading-relaxed text-gray-800 line-clamp-6">{result.disease.organic_remedy}</p>
       </Card>
 
       <Card className="border-blue-200 bg-blue-50">
-        <h4 className="text-base font-semibold text-blue-800">{t.scanner.prevention}</h4>
-        <p className="mt-2 text-sm leading-relaxed text-gray-800 line-clamp-6">{result.prevention}</p>
+        <h4 className="text-base font-semibold text-blue-800">Prevention</h4>
+        <p className="mt-2 text-sm leading-relaxed text-gray-800 line-clamp-6">{result.disease.prevention}</p>
       </Card>
 
       <button
@@ -98,7 +112,7 @@ export default function DiseaseResult({ result }) {
         onClick={shareToWhatsApp}
         className="min-h-[44px] w-full rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition active:scale-95 sm:w-auto"
       >
-        {t.common.whatsappShare}
+        {t.common?.whatsappShare || "Share on WhatsApp"}
       </button>
     </div>
   );

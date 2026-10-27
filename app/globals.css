@@ -11,10 +11,105 @@
   body {
     overflow-x: hidden;
     max-width: 100vw;
+    margin: 0;
+    box-sizing: border-box;
     /* Ensure perfect mobile-first alignment, targeting 375px+ screens smoothly */
     min-width: 320px;
     background-color: #f8fafc;
   }
+
+  /* Ensure consistent box-sizing across the app */
+  *, *::before, *::after { box-sizing: inherit; }
+
+  /* Helpers to avoid horizontal overflow from long words, URLs, or unbroken tokens */
+  .break-words {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  /* Preformatted or code blocks should wrap on small screens */
+  pre, code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Responsive base type scale */
+  :root {
+    --ui-font-size: 16px;
+    --ui-radius: 12px;
+  }
+
+  @media (min-width: 640px) {
+    :root { --ui-font-size: 16.5px; }
+  }
+  @media (min-width: 1024px) {
+    :root { --ui-font-size: 17px; }
+  }
+
+  html, body, #__next {
+    font-size: var(--ui-font-size);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans";
+    line-height: 1.5;
+  }
+
+  /* Prevent accidental horizontal scroll from long words or images */
+  img, video, iframe {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Touch target and button defaults */
+  button, .btn, a[role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    border-radius: var(--ui-radius);
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+
+  /* Focus-visible styles for keyboard navigation */
+  :focus {
+    outline: none;
+  }
+  :focus-visible {
+    outline: 3px solid rgba(34,197,94,0.18);
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+
+  /* Reduced motion respecting user preference */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Safe area helpers */
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+  /* Premium subtle glass card baseline */
+  .glass-card {
+    background-color: rgba(255,255,255,0.72);
+    -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.5);
+    box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+    border-radius: 14px;
+  }
+
+  /* Skeleton loader baseline */
+  .skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+    animation: shimmer 1.2s infinite linear;
+  }
+  @keyframes shimmer { from { background-position: -200px 0 } to { background-position: 200px 0 } }
 }
 
 .scrollbar-hide {
@@ -26,8 +121,18 @@
   display: none;
 }
 
-.safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+
+/* Prevent layout shifts on images with unknown size - helpful for scanner/gallery */
+.img-fixed {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure consistent card spacing across platforms */
+.card-spacing {
+  padding: 16px;
+  gap: 12px;
 }
 
 .sidebar-slide {

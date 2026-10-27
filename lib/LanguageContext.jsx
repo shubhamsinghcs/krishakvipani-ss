@@ -14,17 +14,38 @@ export function LanguageProvider({ children }) {
 
   useEffect(() => {
     setMounted(true);
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved && supported.includes(saved)) {
-      setLang(saved);
-    }
+    const saved = window.localStorage.getItem(STORAGE_KEY) || (() => {
+      try {
+        const c = document.cookie.split(";").map((s) => s.trim()).find((s) => s.startsWith("krishakvipani_lang="));
+        return c ? c.split("=")[1] : null;
+      } catch (e) {
+        return null;
+      }
+    })();
+
+    const initial = saved && supported.includes(saved) ? saved : defaultLanguage;
+    setLang(initial);
+    try {
+      document.documentElement.lang = initial;
+    } catch (e) {}
   }, []);
 
   const changeLang = (next) => {
     if (!supported.includes(next)) return;
     setLang(next);
-    window.localStorage.setItem(STORAGE_KEY, next);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, next);
+      document.cookie = `krishakvipani_lang=${next}; path=/; max-age=${60 * 60 * 24 * 365}`;
+      document.documentElement.lang = next;
+    } catch (e) {}
   };
+
+  useEffect(() => {
+    try {
+      document.documentElement.lang = lang;
+      document.cookie = `krishakvipani_lang=${lang}; path=/; max-age=${60 * 60 * 24 * 365}`;
+    } catch (e) {}
+  }, [lang]);
 
   const value = useMemo(() => {
     const tObj = translations[lang] || translations[defaultLanguage];

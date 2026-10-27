@@ -108,7 +108,7 @@ export default function ChatBox() {
     if (typeof window === "undefined") return;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setError("⚠️ आपका ब्राउज़र वॉइस सपोर्ट नहीं करता। (Chrome उपयोग करें)"); // Fallback for unsupported browsers
+      setError(t.assistant?.voiceNotSupported || "Your browser does not support voice input. Try Chrome."); // Fallback for unsupported browsers
       return;
     }
     
@@ -233,11 +233,15 @@ export default function ChatBox() {
             type="button"
             onClick={startListening}
             disabled={loading}
-            className={`flex shrink-0 items-center justify-center rounded-2xl border bg-white transition active:scale-95 disabled:opacity-50 ${listening ? 'min-h-[64px] min-w-[64px] text-3xl border-red-400 animate-pulse shadow-md' : 'min-h-[56px] min-w-[56px] text-2xl border-green-300 shadow-md hover:scale-[1.02]'}`}
+            className={`flex shrink-0 items-center justify-center rounded-2xl border bg-white transition active:scale-95 disabled:opacity-50 ${listening ? 'min-h-[64px] min-w-[64px] border-red-400 animate-pulse shadow-md' : 'min-h-[56px] min-w-[56px] border-green-300 shadow-md hover:scale-[1.02]'}`}
             aria-label={t.assistant?.voiceLabel}
             title={t.assistant?.voiceLabel}
           >
-            🎤
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+              <path d="M12 1v11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M19 11a7 7 0 01-14 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 19v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
           <textarea
             value={input}

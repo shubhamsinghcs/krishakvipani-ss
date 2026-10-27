@@ -52,14 +52,14 @@ export default function MandiTable({ data = [], crop = "", district = "" }) {
           return (
             <div key={`${row.market}-${idx}`} className="rounded-2xl border border-green-100 bg-white p-4 shadow-sm">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold text-brand-textDark">🏪 {row.market}</h3>
+                <h3 className="text-sm font-semibold text-brand-textDark">{row.market}</h3>
                 <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs text-brand-textMid">{row.variety}</span>
               </div>
               <p className="text-sm text-gray-700">
                 {t.mandi.min} ₹{row.minPrice} ·{" "}
                 <span className={isAboveMsp ? "font-semibold text-green-700" : "font-semibold text-red-600"}>
                   {t.mandi.modal} ₹{row.modalPrice}
-                  {isAboveMsp && <span className="ml-1 text-xs text-blue-600 font-normal">भाव बढ़ सकता है 📈</span>}
+                  {isAboveMsp && <span className="ml-1 text-xs text-blue-600 font-normal">भाव बढ़ सकता है</span>}
                 </span>{" "}
                 · {t.mandi.max} ₹{row.maxPrice}
               </p>
@@ -99,7 +99,7 @@ export default function MandiTable({ data = [], crop = "", district = "" }) {
                   <td className="px-4 py-3">₹{row.minPrice}</td>
                   <td className={`px-4 py-3 font-semibold ${isAboveMsp ? "text-green-700" : "text-red-600"}`}>
                     ₹{row.modalPrice}
-                    {isAboveMsp && <span className="ml-2 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs font-medium">भाव बढ़ सकता है 📈</span>}
+                    {isAboveMsp && <span className="ml-2 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs font-medium">भाव बढ़ सकता है</span>}
                   </td>
                   <td className="px-4 py-3">₹{row.maxPrice}</td>
                   <td className="px-4 py-3">{row.unit}</td>

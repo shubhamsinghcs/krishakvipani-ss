@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 
 const ProfitCalculator = dynamic(() => import("@/components/planner/ProfitCalculator"), { ssr: false });
+import dynamicClient from "next/dynamic";
+const Reminders = dynamicClient(() => import("@/components/Reminders"), { ssr: false });
 
 export default function PlannerPage() {
   const [land, setLand] = useState("");
@@ -14,7 +16,7 @@ export default function PlannerPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4 overflow-x-hidden">
       <div>
-        <h1 className="text-2xl font-bold text-brand-textDark md:text-3xl">🌾 स्मार्ट फसल योजना</h1>
+        <h1 className="text-2xl font-bold text-brand-textDark md:text-3xl">स्मार्ट फसल योजना</h1>
         <p className="mt-1 text-sm text-brand-textMid">अपनी ज़मीन और मिट्टी के अनुसार सही फसल चुनें।</p>
       </div>
 
@@ -70,6 +72,9 @@ export default function PlannerPage() {
             <ProfitCalculator land={land} crop={crop} soil={soil} handleReset={() => setShowProfit(false)} />
           </div>
         )}
+        <div className="md:col-span-2">
+          <Reminders />
+        </div>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ export default function FinancePage() {
   return (
     <div className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4 overflow-x-hidden">
       <div>
-        <h1 className="text-2xl font-bold text-brand-textDark md:text-3xl">🏦 लोन व बीमा</h1>
+      <h1 className="text-2xl font-bold text-brand-textDark md:text-3xl">लोन व बीमा</h1>
         <p className="mt-1 text-sm text-brand-textMid">KCC और फसल बीमा के लिए आसानी से आवेदन करें।</p>
       </div>
 

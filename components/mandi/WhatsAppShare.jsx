@@ -8,7 +8,7 @@ export default function WhatsAppShare({ crop, district, data = [] }) {
     const locale = lang === "en" ? "en-IN" : lang === "pa" ? "pa-IN" : "hi-IN";
     const today = new Date().toLocaleDateString(locale);
     const unitText = lang === "en" ? "quintal" : "ਕੁਇੰਟਲ";
-    const lines = data.map((item) => `🏪 ${item.market}: ₹${item.modalPrice}/${lang === "hi" ? "क्विंटल" : unitText}`).join("\n");
+    const lines = data.map((item) => `${item.market}: ₹${item.modalPrice}/${lang === "hi" ? "क्विंटल" : unitText}`).join("\n");
     const title = t.mandi.shareTitle.replace("{crop}", crop);
     const districtLine = t.mandi.shareDistrict.replace("{district}", district);
     const dateLine = t.mandi.shareDate.replace("{date}", today);

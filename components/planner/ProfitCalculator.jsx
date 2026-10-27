@@ -15,7 +15,7 @@ export default function ProfitCalculator({ land, crop, soil, handleReset }) {
 
   return (
     <div className="bg-white/70 backdrop-blur-lg border border-white/40 rounded-2xl shadow-xl p-5 space-y-4">
-      <h3 className="text-lg font-bold text-brand-textDark border-b pb-2 border-green-100">💰 अनुमानित लाभ</h3>
+      <h3 className="text-lg font-bold text-brand-textDark border-b pb-2 border-green-100">अनुमानित लाभ</h3>
       
       <div>
         <label className="text-sm font-medium text-gray-700">अनुमानित लागत (₹)</label>

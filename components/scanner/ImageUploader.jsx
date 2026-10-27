@@ -67,6 +67,52 @@ export default function ImageUploader({ onFilesChange }) {
       image.src = url;
     });
 
+  const estimateSharpness = (file) =>
+    new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const img = new window.Image();
+      img.onload = () => {
+        const maxDim = 256;
+        const ratio = Math.min(maxDim / img.width, maxDim / img.height, 1);
+        const w = Math.max(64, Math.round(img.width * ratio));
+        const h = Math.max(64, Math.round(img.height * ratio));
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          URL.revokeObjectURL(url);
+          resolve({ sharpness: null });
+          return;
+        }
+        ctx.drawImage(img, 0, 0, w, h);
+        try {
+          const data = ctx.getImageData(0, 0, w, h).data;
+          let sum = 0;
+          let sumSq = 0;
+          const pixels = data.length / 4;
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+            sum += gray;
+            sumSq += gray * gray;
+          }
+          const mean = sum / pixels;
+          const variance = sumSq / pixels - mean * mean;
+          URL.revokeObjectURL(url);
+          resolve({ sharpness: Math.max(0, variance) });
+        } catch (e) {
+          URL.revokeObjectURL(url);
+          resolve({ sharpness: null });
+        }
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve({ sharpness: null });
+      };
+      img.src = url;
+    });
+
   const addFiles = async (fileList) => {
     const incoming = Array.from(fileList || []).filter((f) => f && f.type.startsWith("image/"));
     if (!incoming.length) {
@@ -87,6 +133,19 @@ export default function ImageUploader({ onFilesChange }) {
           items.forEach((p) => URL.revokeObjectURL(p.url));
           setItems([]);
           return;
+        }
+        // client-side sharpness heuristic
+        try {
+          const { sharpness } = await estimateSharpness(compressed);
+          if (typeof sharpness === "number" && sharpness < 40) {
+            setError(t.scanner.isBlurry || "One of the images looks blurry. Please take a clearer photo.");
+            onFilesChange([]);
+            items.forEach((p) => URL.revokeObjectURL(p.url));
+            setItems([]);
+            return;
+          }
+        } catch (e) {
+          // ignore detection errors and continue
         }
         merged.push(compressed);
       }
@@ -156,7 +215,12 @@ export default function ImageUploader({ onFilesChange }) {
       >
         {items.length === 0 ? (
           <div className="flex min-h-[140px] flex-col items-center justify-center gap-2">
-            <span className="text-3xl">📷</span>
+            <span className="text-3xl" aria-hidden>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 7h3l2-3h6l2 3h3v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="13" r="3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
             <p className="text-sm font-medium text-brand-textDark">{t.scanner.dropTitle}</p>
             <p className="text-xs text-gray-500">{t.scanner.dropDesc}</p>
           </div>

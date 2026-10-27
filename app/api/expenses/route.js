@@ -24,14 +24,14 @@ export async function POST(request) {
   if (!userId) return NextResponse.json({ success: false, message: "लॉग इन करें।" }, { status: 401 });
 
   try {
-    const { desc, amount, date } = await request.json();
+    const { desc, amount, date, category } = await request.json();
     if (!desc || !amount) {
       return NextResponse.json({ success: false, message: "विवरण और राशि आवश्यक है।" }, { status: 400 });
     }
 
     const db = await getDb();
     await createExpenseSchema(db);
-    const expense = await insertExpense(db, { userId, desc, amount, date });
+    const expense = await insertExpense(db, { userId, desc, amount, date, category });
 
     return NextResponse.json({ success: true, expense });
   } catch (_error) {

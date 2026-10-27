@@ -1,79 +1,81 @@
 import { NextResponse } from "next/server";
-import { DISEASE_REMEDIES } from "@/lib/constants";
 import { getAuthUserId } from "@/lib/auth";
 import { getDb } from "@/lib/mongodb";
 import { ensureScanIndexes, saveScan } from "@/lib/models/Scan";
 import { callGemini } from "@/lib/gemini";
-import { t } from "@/lib/i18n";
 import { autoTranslate } from "@/lib/autoTranslate";
 
 export const dynamic = "force-dynamic";
 
-const MIN_FILE_SIZE = 50 * 1024; // 50KB
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MIN_FILE_SIZE = 50 * 1024;
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const SUPPORTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGES = 3;
+const CROP_CONFIDENCE_THRESHOLD = 70;
 
-const scanCache = new Map();
+const CROP_VALIDATION_PROMPT = `You are an expert agricultural AI system designed to validate crop images.
 
-const GEMINI_PROMPT = `You are an expert Indian agricultural scientist.
-You must analyze the image(s) and provide a strict diagnostic report.
+Analyze the uploaded image(s) STRICTLY.
 
-First, determine if the image is a real crop/plant. Be extremely strict.
-If it is a real crop, detect the crop name and then detect any diseases.
-
-You MUST return ONLY valid JSON in this exact structure:
+Return a JSON object with:
 {
-  "is_crop": true/false,
-  "confidence": 95,
-  "reason": "1-sentence explanation of why it is or isn't a crop",
+  "is_valid_crop": boolean,
+  "confidence": 0-100,
+  "reason": "brief reason",
+  "has_human": boolean,
+  "has_building": boolean,
+  "is_blurry": boolean,
+  "is_screenshot": boolean
+}
+
+Rules:
+1. REJECT if contains humans (faces, hands, people)
+2. REJECT if contains buildings, houses, structures
+3. REJECT if blurry or low quality
+4. REJECT if screenshot or UI elements
+5. ONLY ACCEPT: crop leaves, plants, grains, fruits, farm produce
+6. Set is_valid_crop=true ONLY if confidence >= 70
+7. Return ONLY the JSON. No markdown.
+`;
+
+const DISEASE_ANALYSIS_PROMPT = `You are an expert Indian agricultural scientist AI.
+
+Analyze the crop image(s) and provide a detailed diagnostic report.
+
+Return ONLY valid JSON in this exact structure:
+{
   "crop": {
-    "name": "crop name or unknown",
-    "confidence": 90,
-    "stage": "seedling/vegetative/flowering/fruiting/harvest/unknown"
+    "name": "crop name",
+    "confidence": 0-100,
+    "stage": "seedling|vegetative|flowering|fruiting|harvest|unknown"
   },
   "disease": {
-    "disease": "disease name or Healthy",
-    "confidence": 85,
-    "severity": "Low/Medium/High/None",
-    "symptoms": ["symptom 1", "symptom 2"],
-    "chemical_remedy": "chemical treatment",
+    "name": "disease name or Healthy",
+    "confidence": 0-100,
+    "severity": "None|Low|Medium|High",
+    "symptoms": ["symptom1", "symptom2"],
+    "chemical_remedy": "treatment details",
     "organic_remedy": "organic treatment",
     "prevention": "prevention steps",
-    "is_healthy": true/false
+    "action_required": "immediate action steps"
   }
 }
 
-Important Rules:
-1. ONLY return the JSON. No markdown tags.
-2. Provide all output text in English (it will be translated later).
+Output ONLY JSON. No markdown tags.
 `;
 
-function enrichWithRemedy(diseasePayload) {
-  const disease = diseasePayload?.disease || "";
-  const remedyData = DISEASE_REMEDIES[disease];
-  if (!remedyData) return diseasePayload;
-
-  return {
-    ...diseasePayload,
-    severity: diseasePayload.severity || remedyData.severity || "Medium",
-    chemical_remedy: diseasePayload.chemical_remedy || remedyData.remedy || "",
-    organic_remedy: diseasePayload.organic_remedy || remedyData.organic_remedy || "",
-  };
-}
-
-async function tryPersistScanHistory(userId, finalPayload) {
-  if (!userId) return;
+async function tryPersistScan(userId, finalPayload) {
+  if (!userId || userId === "anonymous") return;
   try {
     const db = await getDb();
-    try { await ensureScanIndexes(db); } catch {}
+    await ensureScanIndexes(db);
     await saveScan(db, {
       userId,
       crop: finalPayload.crop?.name || "Unknown",
-      disease: finalPayload.disease?.disease || "Healthy",
-      confidence: finalPayload.disease?.confidence || 0
+      disease: finalPayload.disease?.name || "Healthy",
+      confidence: finalPayload.disease?.confidence || 0,
     });
-  } catch (error) {}
+  } catch {}
 }
 
 async function collectImageFiles(formData) {
@@ -95,105 +97,125 @@ async function collectImageFiles(formData) {
 
 export async function POST(request) {
   const url = new URL(request.url);
-  const lang = url.searchParams.get("lang") || request.headers.get("x-lang") || request.headers.get("x-language") || "en";
+  const lang = url.searchParams.get("lang") || "en";
+
   try {
     const formData = await request.formData();
     const files = await collectImageFiles(formData);
 
-    // STEP 1: FILE VALIDATION
     if (!files.length) {
-      return NextResponse.json({ success: false, message: t("scanner.invalidType", lang) || "अमान्य फ़ाइल" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: await autoTranslate("No valid images found", lang) },
+        { status: 400 }
+      );
     }
 
     const images = [];
     for (const file of files) {
       if (file.size < MIN_FILE_SIZE || file.size > MAX_FILE_SIZE) {
-        return NextResponse.json({ 
-          success: false, 
-          message: await autoTranslate("File size must be between 50KB and 5MB.", lang) 
-        }, { status: 413 });
+        return NextResponse.json(
+          { success: false, message: await autoTranslate("Image must be 50KB-5MB", lang) },
+          { status: 413 }
+        );
       }
       const bytes = await file.arrayBuffer();
-      const base64Image = Buffer.from(bytes).toString("base64");
-      images.push({ mimeType: file.type, base64: base64Image });
+      const base64 = Buffer.from(bytes).toString("base64");
+      images.push({ mimeType: file.type, data: base64 });
     }
+
+    // STEP 1: STRICT CROP VALIDATION
+    const validationResult = await callGemini(CROP_VALIDATION_PROMPT, images);
+
+    if (!validationResult.success || !validationResult.data) {
+      return NextResponse.json(
+        { success: false, message: await autoTranslate("Image validation failed", lang) },
+        { status: 400 }
+      );
+    }
+
+    const validation = validationResult.data;
+
+    if (validation.has_human) {
+      return NextResponse.json(
+        { success: false, message: await autoTranslate("Images containing people not allowed", lang) },
+        { status: 400 }
+      );
+    }
+
+    if (validation.has_building) {
+      return NextResponse.json(
+        { success: false, message: await autoTranslate("Please upload only crop/plant images", lang) },
+        { status: 400 }
+      );
+    }
+
+    if (validation.is_blurry) {
+      return NextResponse.json(
+        { success: false, message: await autoTranslate("Image is too blurry. Please take a clear photo", lang) },
+        { status: 400 }
+      );
+    }
+
+    if (validation.is_screenshot) {
+      return NextResponse.json(
+        { success: false, message: await autoTranslate("Screenshots not allowed. Upload a photo instead", lang) },
+        { status: 400 }
+      );
+    }
+
+    if (!validation.is_valid_crop || validation.confidence < CROP_CONFIDENCE_THRESHOLD) {
+      return NextResponse.json(
+        { success: false, message: await autoTranslate("This does not appear to be a crop image. Please upload a clear plant or crop photo", lang) },
+        { status: 400 }
+      );
+    }
+
+    // STEP 2: DISEASE ANALYSIS
+    const analysisResult = await callGemini(DISEASE_ANALYSIS_PROMPT, images);
+
+    if (!analysisResult.success || !analysisResult.data) {
+      return NextResponse.json(
+        { success: false, message: await autoTranslate("Analysis failed. Please try again", lang) },
+        { status: 400 }
+      );
+    }
+
+    const analysis = analysisResult.data;
+
+    // STEP 3: TRANSLATE & ENRICH
+    const finalPayload = {
+      validation_confidence: validation.confidence,
+      crop: {
+        name: await autoTranslate(analysis.crop?.name || "Unknown", lang),
+        confidence: Math.min(100, Math.round(analysis.crop?.confidence || 0)),
+        stage: await autoTranslate(analysis.crop?.stage || "unknown", lang),
+      },
+      disease: {
+        name: await autoTranslate(analysis.disease?.name || "Healthy", lang),
+        confidence: Math.min(100, Math.round(analysis.disease?.confidence || 0)),
+        severity: await autoTranslate(analysis.disease?.severity || "None", lang),
+        symptoms: await Promise.all(
+          (analysis.disease?.symptoms || []).map((s) => autoTranslate(s, lang))
+        ),
+        chemical_remedy: await autoTranslate(analysis.disease?.chemical_remedy || "", lang),
+        organic_remedy: await autoTranslate(analysis.disease?.organic_remedy || "", lang),
+        prevention: await autoTranslate(analysis.disease?.prevention || "", lang),
+        action_required: await autoTranslate(analysis.disease?.action_required || "", lang),
+        is_healthy: (analysis.disease?.name || "").toLowerCase() === "healthy",
+      },
+      timestamp: new Date().toISOString(),
+      language: lang,
+    };
 
     const userId = getAuthUserId(request) || "anonymous";
-    
-    // STEP 2/3/4: AI PIPELINE (Single Call for speed, JSON parsed internally)
-    const geminiResult = await callGemini(GEMINI_PROMPT, images);
+    await tryPersistScan(userId, finalPayload);
 
-    if (!geminiResult.success || !geminiResult.data) {
-      return NextResponse.json({ 
-        success: true, 
-        fallback: true, 
-        message: await autoTranslate("AI is currently unavailable", lang) 
-      }, { status: 200 });
-    }
-
-    const parsed = geminiResult.data;
-
-    // AI CROP VALIDATION (STRICT)
-    if (parsed.is_crop === false || (typeof parsed.confidence === 'number' && parsed.confidence < 60)) {
-       return NextResponse.json({ 
-           success: false, 
-           message: await autoTranslate("❌ This is not a valid crop photo", lang) 
-       }, { status: 400 });
-    }
-
-    const reason = (parsed.reason || "").toLowerCase();
-    const keywords = ["leaf", "plant", "crop", "wheat", "rice"];
-    const hasKeyword = keywords.some(kw => reason.includes(kw));
-
-    if (!hasKeyword) {
-        return NextResponse.json({ 
-            success: false, 
-            message: await autoTranslate("❌ This is not a valid crop photo", lang) 
-        }, { status: 400 });
-    }
-
-    // AI CROP & DISEASE DETECTION (ENRICH & TRANSLATE)
-    const diseaseEnriched = enrichWithRemedy(parsed.disease || {});
-    
-    // Auto-translate fields if needed
-    const finalCrop = {
-        name: await autoTranslate(parsed.crop?.name || "Unknown", lang),
-        confidence: parsed.crop?.confidence || 0,
-        stage: await autoTranslate(parsed.crop?.stage || "unknown", lang)
-    };
-
-    const translatedSymptoms = [];
-    if (Array.isArray(diseaseEnriched.symptoms)) {
-        for (const s of diseaseEnriched.symptoms) {
-            translatedSymptoms.push(await autoTranslate(s, lang));
-        }
-    }
-
-    const finalDisease = {
-        disease: await autoTranslate(diseaseEnriched.disease || "Healthy", lang),
-        confidence: diseaseEnriched.confidence || 0,
-        severity: await autoTranslate(diseaseEnriched.severity || "None", lang),
-        symptoms: translatedSymptoms,
-        chemical_remedy: await autoTranslate(diseaseEnriched.chemical_remedy || "", lang),
-        organic_remedy: await autoTranslate(diseaseEnriched.organic_remedy || "", lang),
-        prevention: await autoTranslate(diseaseEnriched.prevention || "", lang),
-        is_healthy: Boolean(diseaseEnriched.is_healthy)
-    };
-
-    const finalPayload = { crop: finalCrop, disease: finalDisease };
-    scanCache.set(userId, finalPayload);
-
-    if (userId !== "anonymous") {
-      await tryPersistScanHistory(userId, finalPayload);
-    }
-    
-    return NextResponse.json({ success: true, crop: finalCrop, disease: finalDisease }, { status: 200 });
+    return NextResponse.json({ success: true, result: finalPayload }, { status: 200 });
   } catch (error) {
     console.error("Scan Error:", error);
-    return NextResponse.json({ 
-      success: true, 
-      fallback: true, 
-      message: await autoTranslate("AI scanning failed", lang) 
-    }, { status: 200 });
+    return NextResponse.json(
+      { success: false, message: await autoTranslate("Scan failed. Please try again", "en") },
+      { status: 500 }
+    );
   }
 }

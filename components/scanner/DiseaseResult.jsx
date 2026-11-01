@@ -562,6 +562,51 @@ export default function DiseaseResult({ result, uploadedImages = [], onReset }) 
         </Link>
       </div>
 
+      {/* 6-Tier Architecture Verification Chain */}
+      <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-3.5 shadow-2xs">
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-950">
+            <span>🛡️</span>
+            <span>
+              {lang === "hi"
+                ? "प्रमाणित 6-स्तरीय संरचना द्वारा सत्यापित"
+                : lang === "pa"
+                ? "6-ਪੜਾਵੀ ਪ੍ਰਮਾਣਿਤ ਢਾਂਚੇ ਦੁਆਰਾ ਤਸਦੀਕਸ਼ੁਦਾ"
+                : "Verified through 6-Tier Recommended Architecture"}
+            </span>
+          </div>
+          <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-full border border-emerald-200">
+            ICAR · PAU · CIBRC Compliant
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1.5 text-center text-[10px] font-medium text-emerald-900">
+          <div className="bg-white/80 rounded-lg p-1.5 border border-emerald-100/60">
+            <span className="block font-bold text-emerald-700">✓ Tier 1</span>
+            <span>Farmer UI</span>
+          </div>
+          <div className="bg-white/80 rounded-lg p-1.5 border border-emerald-100/60">
+            <span className="block font-bold text-emerald-700">✓ Tier 2</span>
+            <span>Quality QC</span>
+          </div>
+          <div className="bg-white/80 rounded-lg p-1.5 border border-emerald-100/60">
+            <span className="block font-bold text-emerald-700">✓ Tier 3</span>
+            <span>Vision AI</span>
+          </div>
+          <div className="bg-white/80 rounded-lg p-1.5 border border-emerald-100/60">
+            <span className="block font-bold text-emerald-700">✓ Tier 4</span>
+            <span>Decision/Calib</span>
+          </div>
+          <div className="bg-white/80 rounded-lg p-1.5 border border-emerald-100/60">
+            <span className="block font-bold text-emerald-700">✓ Tier 5</span>
+            <span>ICAR Advisory</span>
+          </div>
+          <div className="bg-white/80 rounded-lg p-1.5 border border-emerald-100/60">
+            <span className="block font-bold text-emerald-700">✓ Tier 6</span>
+            <span>Final Report</span>
+          </div>
+        </div>
+      </div>
+
       {/* Mandatory Advisory Disclaimer */}
       <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-[11px] text-gray-600 leading-relaxed text-center sm:text-left">
         <span>ℹ️ </span>

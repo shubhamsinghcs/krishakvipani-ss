@@ -7,6 +7,10 @@ import { AUTH_TOKEN_STORAGE_KEY } from "@/lib/clientAuth";
 
 const ImageUploader = dynamic(() => import("@/components/scanner/ImageUploader"), { ssr: false });
 const DiseaseResult = dynamic(() => import("@/components/scanner/DiseaseResult"), { ssr: false });
+const RecommendedArchitectureView = dynamic(
+  () => import("@/components/scanner/RecommendedArchitectureView"),
+  { ssr: false }
+);
 
 export default function ScannerPage() {
   const { t, lang } = useLang();
@@ -14,8 +18,9 @@ export default function ScannerPage() {
   const [imageUrls, setImageUrls] = useState([]);
   const [result, setResult] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
-  const [scanStage, setScanStage] = useState(0); // 0, 1, 2
+  const [scanStage, setScanStage] = useState(0); // 0 to 5
   const [error, setError] = useState("");
+  const [showArchitecture, setShowArchitecture] = useState(false);
 
   const onFilesChange = useCallback((next) => {
     setFiles(next);
@@ -24,35 +29,51 @@ export default function ScannerPage() {
     setImageUrls(next.map((f) => URL.createObjectURL(f)));
   }, []);
 
-  // Multi-stage scan progress simulation while waiting for API response
+  // Multi-stage 6-tier scan progress simulation while waiting for API response
   useEffect(() => {
     let interval;
     if (isScanning) {
       setScanStage(0);
       interval = setInterval(() => {
-        setScanStage((prev) => (prev < 2 ? prev + 1 : prev));
-      }, 1500);
+        setScanStage((prev) => (prev < 5 ? prev + 1 : prev));
+      }, 950);
     } else {
       setScanStage(0);
     }
     return () => clearInterval(interval);
   }, [isScanning]);
 
+  // Aligned directly to the 6-tier Recommended Architecture
   const stagesText = [
     {
-      en: "Uploading & validating crop leaf images...",
-      hi: "छवियों की स्पष्टता व पौधे की पुष्टि की जा रही है...",
-      pa: "ਤਸਵੀਰਾਂ ਦੀ ਗੁਣਵੱਤਾ ਅਤੇ ਪੌਦੇ ਦੀ ਜਾਂਚ ਹੋ ਰਹੀ ਹੈ...",
+      en: "1/6 Farmer Interface: Validating 1-3 photos & confirmed crop...",
+      hi: "1/6 किसान इंटरफ़ेस: तस्वीरों व फसल की पुष्टि की जा रही है...",
+      pa: "1/6 ਕਿਸਾਨ ਇੰਟਰਫੇਸ: ਤਸਵੀਰਾਂ ਅਤੇ ਫ਼ਸਲ ਦੀ ਪੁਸ਼ਟੀ...",
     },
     {
-      en: "Scanning for foliar pathogens, blight & lesions...",
-      hi: "पत्तियों पर फफूंद, कीट व रोग के लक्षणों का विश्लेषण...",
-      pa: "ਪੱਤਿਆਂ 'ਤੇ ਉੱਲੀ ਅਤੇ ਰੋਗ ਦੇ ਲੱਛਣਾਂ ਦੀ ਪਛਾਣ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ...",
+      en: "2/6 Quality Control: Inspecting resolution, blur & foliage spectrum...",
+      hi: "2/6 गुणवत्ता नियंत्रण: रिज़ॉल्यूशन, धुंधलापन व पत्ती पहचान की जांच...",
+      pa: "2/6 ਗੁਣਵੱਤਾ ਜਾਂਚ: ਰੈਜ਼ੋਲਿਊਸ਼ਨ, ਧੁੰਦਲਾਪਨ ਅਤੇ ਪੌਦੇ ਦੀ ਜਾਂਚ...",
     },
     {
-      en: "Formulating ICAR/KVK chemical & organic remedies...",
-      hi: "प्रमाणित रासायनिक व जैविक उपचार तैयार किए जा रहे हैं...",
-      pa: "ਸਰਕਾਰੀ ਖੇਤੀਬਾੜੀ ਮਾਹਿਰਾਂ ਅਨੁਸਾਰ ਢੁਕਵਾਂ ਇਲਾਜ ਤਿਆਰ ਹੋ ਰਿਹਾ ਹੈ...",
+      en: "3/6 AI Vision Engine: Multi-view foliar pathology analysis...",
+      hi: "3/6 AI विज़न इंजन: बहु-दृश्य फफूंद व रोग लक्षणों का विश्लेषण...",
+      pa: "3/6 AI ਵਿਜ਼ਨ ਇੰਜਣ: ਪੱਤਿਆਂ 'ਤੇ ਉੱਲੀ ਅਤੇ ਰੋਗ ਲੱਛਣਾਂ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ...",
+    },
+    {
+      en: "4/6 Decision Engine: Calibrating confidence & uncertainty bands...",
+      hi: "4/6 निर्णय इंजन: कैलिब्रेटेड विश्वास स्तर व वैकल्पिक संभावनाओं की जांच...",
+      pa: "4/6 ਫੈਸਲਾ ਇੰਜਣ: ਵਿਸ਼ਵਾਸ ਪੱਧਰ ਅਤੇ ਬਦਲਵੇਂ ਰੋਗਾਂ ਦੀ ਜਾਂਚ...",
+    },
+    {
+      en: "5/6 Advisory Engine: Matching ICAR, PAU & CIBRC registered remedies...",
+      hi: "5/6 परामर्श इंजन: ICAR, PAU व CIBRC प्रमाणित उपचार व सुरक्षा समय (PHI)...",
+      pa: "5/6 ਸਲਾਹਕਾਰ ਇੰਜਣ: ਸਰਕਾਰੀ ਖੇਤੀਬਾੜੀ ਮਾਹਿਰਾਂ ਅਨੁਸਾਰ ਢੁਕਵਾਂ ਇਲਾਜ...",
+    },
+    {
+      en: "6/6 Farmer Diagnosis Report: Synthesizing actionable guidance...",
+      hi: "6/6 किसान निदान रिपोर्ट: विस्तृत उपचार व रोकथाम रिपोर्ट तैयार...",
+      pa: "6/6 ਕਿਸਾਨ ਰਿਪੋਰਟ: ਵਿਸਤ੍ਰਿਤ ਇਲਾਜ ਅਤੇ ਰੋਕਥਾਮ ਰਿਪੋਰਟ ਤਿਆਰ...",
     },
   ];
 
@@ -105,20 +126,47 @@ export default function ScannerPage() {
     <div className="mx-auto max-w-5xl px-4 md:px-6 py-6 space-y-6 overflow-x-hidden">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-100 text-green-700 text-xl shadow-xs">
-            🔬
-          </span>
-          <div>
-            <h1 className="text-2xl font-bold text-brand-textDark md:text-3xl">
-              {t.scanner?.title || "AI Crop Disease Scanner"}
-            </h1>
-            <p className="text-xs sm:text-sm text-brand-textMid mt-0.5">
-              {t.scanner?.subtitle || "Instant plant diagnosis & ICAR-approved remedies powered by multimodal vision"}
-            </p>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-100 text-green-700 text-xl shadow-xs">
+              🔬
+            </span>
+            <div>
+              <h1 className="text-2xl font-bold text-brand-textDark md:text-3xl">
+                {t.scanner?.title || "AI Crop Disease Scanner"}
+              </h1>
+              <p className="text-xs sm:text-sm text-brand-textMid mt-0.5">
+                {t.scanner?.subtitle || "Instant plant diagnosis & ICAR-approved remedies powered by multimodal vision"}
+              </p>
+            </div>
           </div>
+
+          {/* Architecture Pipeline Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setShowArchitecture((prev) => !prev)}
+            className="flex items-center gap-1.5 rounded-xl border border-green-200 bg-green-50 px-3.5 py-1.5 text-xs font-bold text-green-800 transition hover:bg-green-100 active:scale-95 shadow-2xs"
+          >
+            <span>🏗️</span>
+            <span>
+              {showArchitecture
+                ? lang === "hi"
+                  ? "संरचना विवरण छुपाएं"
+                  : "Hide Architecture"
+                : lang === "hi"
+                ? "अनुशंसित संरचना (6-स्तरीय पाइपलाइन)"
+                : "Recommended Architecture"}
+            </span>
+          </button>
         </div>
       </div>
+
+      {/* Expandable Architecture View */}
+      {showArchitecture && (
+        <div className="transition-all duration-300">
+          <RecommendedArchitectureView />
+        </div>
+      )}
 
       {!result ? (
         <div className="space-y-5">
@@ -191,9 +239,9 @@ export default function ScannerPage() {
             </div>
           </div>
 
-          {/* Scanning Progress Banner */}
+          {/* Scanning Progress Live Architecture Stepper */}
           {isScanning && (
-            <div className="rounded-2xl border border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 p-4 shadow-sm">
+            <div className="rounded-2xl border border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 p-4 shadow-sm space-y-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-600 text-white font-bold animate-pulse">
                   🌱
@@ -201,15 +249,20 @@ export default function ScannerPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between text-xs font-bold text-green-900 mb-1">
                     <span>{stagesText[scanStage]?.[lang] || stagesText[scanStage]?.en}</span>
-                    <span>Step {scanStage + 1} of 3</span>
+                    <span>Step {scanStage + 1} of 6</span>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-green-200">
                     <div
                       className="h-full bg-green-600 transition-all duration-700"
-                      style={{ width: `${((scanStage + 1) / 3) * 100}%` }}
+                      style={{ width: `${((scanStage + 1) / 6) * 100}%` }}
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Real-time Architecture Pipeline Execution */}
+              <div className="border-t border-green-200/60 pt-3">
+                <RecommendedArchitectureView currentStep={scanStage + 1} compact={true} />
               </div>
             </div>
           )}

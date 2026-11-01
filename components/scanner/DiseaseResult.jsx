@@ -24,6 +24,43 @@ export default function DiseaseResult({ result, uploadedImages = [], onReset }) 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
+  const toggleSpeakRemedy = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      alert("Audio voice playback is not supported on this browser.");
+      return;
+    }
+
+    if (isPlayingAudio) {
+      window.speechSynthesis.cancel();
+      setIsPlayingAudio(false);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const cropName = result?.crop?.name || "फसल";
+    const diseaseName = result?.disease?.name || "रोग";
+    const symptomsText = Array.isArray(result?.disease?.symptoms) ? result.disease.symptoms.join(". ") : "";
+    const remedyText = result?.disease?.chemical_remedy || result?.disease?.organic_remedy || "";
+
+    const textToSpeak = lang === "hi"
+      ? `फसल का नाम: ${cropName}। रोग की पहचान: ${diseaseName}। लक्षण: ${symptomsText}। उपचार सलाह: ${remedyText}`
+      : lang === "pa"
+      ? `ਫ਼ਸਲ: ${cropName}। ਰੋਗ: ${diseaseName}। ਲੱਛਣ: ${symptomsText}। ਇਲਾਜ: ${remedyText}`
+      : `Crop: ${cropName}. Diagnosis: ${diseaseName}. Symptoms: ${symptomsText}. Treatment advice: ${remedyText}`;
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.lang = lang === "hi" ? "hi-IN" : lang === "pa" ? "pa-IN" : "en-IN";
+    utterance.rate = 0.88; // Slightly slower for clear rural comprehension
+
+    utterance.onend = () => setIsPlayingAudio(false);
+    utterance.onerror = () => setIsPlayingAudio(false);
+
+    window.speechSynthesis.speak(utterance);
+    setIsPlayingAudio(true);
+  };
 
   if (!result) return null;
 
@@ -197,34 +234,63 @@ export default function DiseaseResult({ result, uploadedImages = [], onReset }) 
 
           {/* Condition Header & Category */}
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider ${
-                  isUnknown
-                    ? "bg-amber-200 text-amber-900"
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider ${
+                    isUnknown
+                      ? "bg-amber-200 text-amber-900"
+                      : isHealthy
+                      ? "bg-green-200 text-green-900"
+                      : "bg-red-100 text-red-900"
+                  }`}
+                >
+                  {isUnknown
+                    ? lang === "hi"
+                      ? "अस्पष्ट / अनिश्चित लक्षण"
+                      : "Uncertain / Inconclusive Symptoms"
                     : isHealthy
-                    ? "bg-green-200 text-green-900"
-                    : "bg-red-100 text-red-900"
-                }`}
-              >
-                {isUnknown
-                  ? lang === "hi"
-                    ? "अस्पष्ट / अनिश्चित लक्षण"
-                    : "Uncertain / Inconclusive Symptoms"
-                  : isHealthy
-                  ? lang === "hi"
-                    ? "स्वस्थ फसल"
-                    : "Healthy Foliage"
-                  : lang === "hi"
-                  ? "प्राथमिक संभावित रोग"
-                  : "Primary Possible Condition"}
-              </span>
-
-              {isAmbiguous ? (
-                <span className="inline-block rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
-                  {t.scanner?.ambiguousBadge || "Possible Match (Overlapping Symptoms)"}
+                    ? lang === "hi"
+                      ? "स्वस्थ फसल"
+                      : "Healthy Foliage"
+                    : lang === "hi"
+                    ? "प्राथमिक संभावित रोग"
+                    : "Primary Possible Condition"}
                 </span>
-              ) : null}
+
+                {isAmbiguous ? (
+                  <span className="inline-block rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
+                    {t.scanner?.ambiguousBadge || "Possible Match (Overlapping Symptoms)"}
+                  </span>
+                ) : null}
+              </div>
+
+              {/* TTS Listen Aloud Button */}
+              <button
+                type="button"
+                onClick={toggleSpeakRemedy}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-2xs ${
+                  isPlayingAudio
+                    ? "bg-red-600 text-white animate-pulse"
+                    : "bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 active:scale-95"
+                }`}
+                title={lang === "hi" ? "आवाज में सुनें" : lang === "pa" ? "ਆਵਾਜ਼ ਵਿੱਚ ਸੁਣੋ" : "Listen aloud"}
+              >
+                <span>{isPlayingAudio ? "⏹️" : "🔊"}</span>
+                <span>
+                  {isPlayingAudio
+                    ? lang === "hi"
+                      ? "आवाज़ बंद करें"
+                      : lang === "pa"
+                      ? "ਆਵਾਜ਼ ਬੰਦ ਕਰੋ"
+                      : "Stop Audio"
+                    : lang === "hi"
+                    ? "बोलकर सुनें"
+                    : lang === "pa"
+                    ? "ਆਵਾਜ਼ ਸੁਣੋ"
+                    : "Listen Aloud"}
+                </span>
+              </button>
             </div>
 
             <h2 className="mt-1 text-2xl font-bold text-gray-950 sm:text-3xl">

@@ -17,6 +17,7 @@ export default function ChatBox() {
   const recognitionRef = useRef(null);
   const scrollRef = useRef(null);
   const utterRef = useRef(null);
+  const initialQueryHandledRef = useRef(false);
 
   const welcomeText = t.assistant?.welcome || "";
   const suggestions = t.assistant?.suggestions || [];
@@ -104,6 +105,20 @@ export default function ChatBox() {
       setLoading(false);
     }
   };
+
+  // Support seamless Voice Search handoff from homepage via ?q=...
+  useEffect(() => {
+    if (typeof window === "undefined" || initialQueryHandledRef.current) return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const query = params.get("q");
+      if (query && query.trim()) {
+        initialQueryHandledRef.current = true;
+        sendMessage(query.trim());
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const startListening = () => {
     if (typeof window === "undefined") return;

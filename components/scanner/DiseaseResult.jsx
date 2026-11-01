@@ -26,7 +26,7 @@ export default function DiseaseResult({ result }) {
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
   };
 
-    if (result.disease.is_healthy) {
+  if (result.disease.is_healthy) {
     return (
       <div className="mx-auto max-w-2xl space-y-4">
         <Card className="border-green-200 bg-green-50">
@@ -34,7 +34,7 @@ export default function DiseaseResult({ result }) {
             <div className="flex-1">
               <h3 className="text-lg font-bold text-green-800">{t.scanner?.healthyTitle || "Crop is Healthy"}</h3>
               <p className="mt-2 text-sm font-semibold text-green-700">{result.crop.name}</p>
-              <p className="mt-1 text-xs text-green-600">Stage: {result.crop.stage}</p>
+              <p className="mt-1 text-xs text-green-600">{t.scanner?.stage || "Stage"}: {result.crop.stage}</p>
             </div>
             <span className="inline-flex rounded-full bg-white px-3 py-1 text-sm font-bold text-green-700">
               {result.disease.confidence}%
@@ -53,7 +53,7 @@ export default function DiseaseResult({ result }) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1">
             <h3 className="text-lg font-bold text-red-800 sm:text-xl">{result.disease.name}</h3>
-            <p className="mt-1 text-sm font-semibold text-red-700">{result.crop.name} · Stage: {result.crop.stage}</p>
+            <p className="mt-1 text-sm font-semibold text-red-700">{result.crop.name} · {t.scanner?.stage || "Stage"}: {result.crop.stage}</p>
           </div>
           <span
             className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold ${severityClasses[result.disease.severity] || severityClasses.Medium}`}
@@ -62,7 +62,7 @@ export default function DiseaseResult({ result }) {
           </span>
         </div>
         <div className="mt-3 flex items-center gap-2">
-          <span className="text-sm font-semibold text-red-900">Confidence:</span>
+          <span className="text-sm font-semibold text-red-900">{t.scanner?.confidence || "Confidence"}:</span>
           <div className="flex-1 h-2 overflow-hidden rounded-full bg-red-100">
             <div
               className="h-full rounded-full bg-red-600 transition-[width]"
@@ -76,13 +76,13 @@ export default function DiseaseResult({ result }) {
 
       {result.disease.action_required && (
         <Card className="border-orange-300 bg-orange-50">
-          <h4 className="text-base font-bold text-orange-800">Action Required</h4>
+          <h4 className="text-base font-bold text-orange-800">{t.scanner?.actionRequired || "Action Required"}</h4>
           <p className="mt-2 text-sm leading-relaxed text-orange-900">{result.disease.action_required}</p>
         </Card>
       )}
 
       <Card className="border-orange-200 bg-white">
-        <h4 className="text-base font-semibold text-brand-textDark">Symptoms</h4>
+        <h4 className="text-base font-semibold text-brand-textDark">{t.scanner?.symptoms || "Symptoms"}</h4>
         <ul className="mt-2 list-inside list-disc space-y-1 text-sm leading-relaxed text-gray-800">
           {(result.disease.symptoms || []).map((symptom, idx) => (
             <li key={`${symptom}-${idx}`} className="line-clamp-3">
@@ -93,17 +93,17 @@ export default function DiseaseResult({ result }) {
       </Card>
 
       <Card className="border-orange-200 bg-orange-50">
-        <h4 className="text-base font-semibold text-orange-800">Chemical Treatment</h4>
+        <h4 className="text-base font-semibold text-orange-800">{t.scanner?.chemical || "Chemical Treatment"}</h4>
         <p className="mt-2 text-sm leading-relaxed text-gray-800 line-clamp-6">{result.disease.chemical_remedy}</p>
       </Card>
 
       <Card className="border-green-200 bg-green-50">
-        <h4 className="text-base font-semibold text-green-800">Organic Alternative</h4>
+        <h4 className="text-base font-semibold text-green-800">{t.scanner?.organic || "Organic Alternative"}</h4>
         <p className="mt-2 text-sm leading-relaxed text-gray-800 line-clamp-6">{result.disease.organic_remedy}</p>
       </Card>
 
       <Card className="border-blue-200 bg-blue-50">
-        <h4 className="text-base font-semibold text-blue-800">Prevention</h4>
+        <h4 className="text-base font-semibold text-blue-800">{t.scanner?.prevention || "Prevention"}</h4>
         <p className="mt-2 text-sm leading-relaxed text-gray-800 line-clamp-6">{result.disease.prevention}</p>
       </Card>
 

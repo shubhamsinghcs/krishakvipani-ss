@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useLang } from "@/lib/LanguageContext";
 
 export default function NotificationCenter() {
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +56,7 @@ export default function NotificationCenter() {
     <div className="relative" ref={ref}>
       <button
         type="button"
-        aria-label="Notifications"
+        aria-label={t.notifications?.title || "Notifications"}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls="notification-center-panel"
@@ -72,18 +74,18 @@ export default function NotificationCenter() {
       </button>
 
       {open && (
-        <div id="notification-center-panel" role="dialog" aria-label="Notifications" className="absolute right-0 mt-2 w-80 max-w-screen-sm rounded-xl bg-white border border-gray-100 shadow-lg z-50">
+        <div id="notification-center-panel" role="dialog" aria-label={t.notifications?.title || "Notifications"} className="absolute right-0 mt-2 w-80 max-w-screen-sm rounded-xl bg-white border border-gray-100 shadow-lg z-50">
           <div className="p-3 border-b">
             <div className="flex items-center justify-between">
-              <h4 className="font-semibold">Notifications</h4>
-              <button type="button" className="text-sm text-gray-500" onClick={() => { setItems(items.map(i => ({ ...i, read: true }))); items.forEach(i => markRead(i._id || i.id)); }}>Mark all read</button>
+              <h4 className="font-semibold">{t.notifications?.title || "Notifications"}</h4>
+              <button type="button" className="text-sm text-gray-500 hover:text-gray-700" onClick={() => { setItems(items.map(i => ({ ...i, read: true }))); items.forEach(i => markRead(i._id || i.id)); }}>{t.notifications?.markAllRead || "Mark all read"}</button>
             </div>
           </div>
           <div className="max-h-72 overflow-auto" aria-live="polite">
             {loading ? (
-              <div className="p-4">Loading…</div>
+              <div className="p-4">{t.notifications?.loading || "Loading…"}</div>
             ) : items.length === 0 ? (
-              <div className="p-4 text-sm text-gray-500">No notifications</div>
+              <div className="p-4 text-sm text-gray-500">{t.notifications?.noNotifications || "No notifications"}</div>
             ) : (
               items.map(item => (
                 <div key={item._id || item.id} className={`p-3 border-b hover:bg-gray-50 ${item.read ? "opacity-70" : ""}`}>
@@ -94,8 +96,8 @@ export default function NotificationCenter() {
                       <p className="text-xs text-gray-400 mt-1">{new Date(item.createdAt).toLocaleString()}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      {!item.read && <button type="button" onClick={() => markRead(item._id || item.id)} className="text-xs text-green-600">Read</button>}
-                      <button type="button" onClick={() => remove(item._id || item.id)} className="text-xs text-red-500">Dismiss</button>
+                      {!item.read && <button type="button" onClick={() => markRead(item._id || item.id)} className="text-xs text-green-600">{t.notifications?.read || "Read"}</button>}
+                      <button type="button" onClick={() => remove(item._id || item.id)} className="text-xs text-red-500">{t.notifications?.dismiss || "Dismiss"}</button>
                     </div>
                   </div>
                 </div>

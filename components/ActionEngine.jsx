@@ -111,9 +111,9 @@ export default function ActionEngine() {
   };
 
   const urgencyMap = {
-    immediate_action: { text: "Take action now", color: "text-red-700" },
-    monitor: { text: "Monitor closely", color: "text-yellow-700" },
-    plan_ahead: { text: "Plan ahead", color: "text-green-700" },
+    immediate_action: { text: t.actions?.immediateAction || "Take action now", color: "text-red-700" },
+    monitor: { text: t.actions?.monitor || "Monitor closely", color: "text-yellow-700" },
+    plan_ahead: { text: t.actions?.planAhead || "Plan ahead", color: "text-green-700" },
   };
 
   const urgencyInfo = urgencyMap[urgency] || urgencyMap.monitor;
@@ -121,7 +121,7 @@ export default function ActionEngine() {
   return (
     <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 shadow-md space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-brand-textDark">Today&apos;s Actions</h2>
+        <h2 className="text-xl font-bold text-brand-textDark">{t.actions?.title || "Today's Actions"}</h2>
         <span className={`inline-flex items-center gap-1 text-sm font-semibold ${urgencyInfo.color}`}>
           {urgencyInfo.text}
         </span>
@@ -150,7 +150,7 @@ export default function ActionEngine() {
                 <p className="mt-2 text-xs text-gray-600">{action.reason}</p>
                 {action.timestamp && (
                   <p className="mt-2 text-xs text-gray-500">
-                    Updated: {new Date(action.timestamp).toLocaleTimeString()}
+                    {t.actions?.updated || "Updated"}: {new Date(action.timestamp).toLocaleTimeString()}
                   </p>
                 )}
               </div>
@@ -160,7 +160,7 @@ export default function ActionEngine() {
       </div>
 
       <p className="text-xs text-gray-600 text-center">
-        Recommendations based on your crop, location, and weather
+        {t.actions?.recommendationsBasedOn || "Recommendations based on your crop, location, and weather"}
       </p>
     </div>
   );

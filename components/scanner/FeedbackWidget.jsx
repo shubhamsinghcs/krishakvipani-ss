@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useLang } from "@/lib/LanguageContext";
 
 export default function FeedbackWidget({ result }) {
+  const { t } = useLang();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +27,7 @@ export default function FeedbackWidget({ result }) {
   if (submitted) {
     return (
       <div className="mt-4 rounded-xl bg-green-50/80 px-4 py-3 text-center text-sm font-semibold text-green-700 shadow-sm border border-green-100">
-        धन्यवाद! आपका फीडबैक दर्ज हो गया है।
+        {t.scanner?.feedbackThanks || "Thank you! Your feedback has been recorded."}
       </div>
     );
   }
@@ -33,9 +35,9 @@ export default function FeedbackWidget({ result }) {
   return (
     <div className="mt-4 rounded-2xl bg-white/70 backdrop-blur-lg border border-white/40 p-4 shadow-xl">
       <p className="text-center text-sm font-semibold text-brand-textDark mb-3">
-        क्या यह सही है?
+        {t.scanner?.isCorrect || "Is this diagnosis accurate?"}
       </p>
-        <div className="flex gap-4 justify-center">
+      <div className="flex gap-4 justify-center">
         <button
           disabled={loading}
           onClick={() => handleFeedback(true)}
@@ -44,7 +46,7 @@ export default function FeedbackWidget({ result }) {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
             <path d="M14 9V5a3 3 0 0 0-6 0v4H4v7a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-7h-4z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          सही
+          {t.scanner?.correct || "Correct"}
         </button>
         <button
           disabled={loading}
@@ -54,7 +56,7 @@ export default function FeedbackWidget({ result }) {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
             <path d="M19 13V7a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v7h4v4a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3v-4h-1z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          गलत
+          {t.scanner?.incorrect || "Incorrect"}
         </button>
       </div>
     </div>

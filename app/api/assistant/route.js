@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { safeEnv } from "@/lib/env";
 import { callGemini } from "@/lib/gemini";
+import { supportedLanguages } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
 function validateLang(lang) {
-  const codes = ["en", "hi", "pa", "bn", "gu", "mr", "ta", "te", "kn", "ml", "or", "as", "ur", "sa", "ks", "ne", "sd", "kok", "mai", "mni", "doi", "brx"];
-  return codes.includes(lang) ? lang : "hi";
+  return supportedLanguages.includes(lang) ? lang : "hi";
 }
 
 export async function POST(request) {
@@ -56,11 +56,9 @@ export async function POST(request) {
     }
 
     const langNames = {
-      en: "English", hi: "Hindi", pa: "Punjabi", bn: "Bengali", gu: "Gujarati",
-      mr: "Marathi", ta: "Tamil", te: "Telugu", kn: "Kannada", ml: "Malayalam",
-      or: "Odia", as: "Assamese", ur: "Urdu", sa: "Sanskrit", ks: "Kashmiri",
-      ne: "Nepali", sd: "Sindhi", kok: "Konkani", mai: "Maithili", mni: "Manipuri",
-      doi: "Dogri", brx: "Bodo"
+      en: "English",
+      hi: "Hindi",
+      pa: "Punjabi",
     };
     const selectedLanguageName = langNames[lang] || "Hindi";
 

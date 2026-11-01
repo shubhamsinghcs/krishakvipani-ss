@@ -3,11 +3,13 @@
 import { useLoadScript, GoogleMap, Marker, InfoWindow, Polyline } from "@react-google-maps/api";
 import { useState, useCallback, useMemo } from "react";
 import { safeEnv } from "@/lib/env";
+import { useLang } from "@/lib/LanguageContext";
 
 const mapContainerStyle = { w: "100%", h: "100%" };
 const defaultCenter = { lat: 30.3398, lng: 76.3869 }; // Patiala fallback
 
 export default function MapView({ drivers, userLocation, fromLoc, toLoc, previewDriver }) {
+  const { t } = useLang();
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || safeEnv("NEXT_PUBLIC_GOOGLE_MAPS_KEY"),
   });
@@ -23,8 +25,8 @@ export default function MapView({ drivers, userLocation, fromLoc, toLoc, preview
     // Optionally auto-fit bounds based on markers
   }, []);
 
-  if (loadError) return <div className="p-4 text-center text-red-500 font-semibold bg-red-50 rounded-xl">मैप लोड नहीं हो पाया</div>;
-  if (!isLoaded) return <div className="p-4 text-center text-brand-textMid">नक्शा लोड हो रहा है...</div>;
+  if (loadError) return <div className="p-4 text-center text-red-500 font-semibold bg-red-50 rounded-xl">{t.transport?.mapError || "Failed to load Google Maps"}</div>;
+  if (!isLoaded) return <div className="p-4 text-center text-brand-textMid">{t.transport?.mapLoading || "Loading map..."}</div>;
 
   return (
     <div className="w-full h-full min-h-[400px] relative rounded-2xl overflow-hidden border border-green-200 shadow-inner">
@@ -41,7 +43,7 @@ export default function MapView({ drivers, userLocation, fromLoc, toLoc, preview
           icon={{
             url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
           }}
-          title="Your Location"
+          title={t.transport?.yourLocation || "Your Location"}
         />
 
         {/* Route preview between from/to if provided */}
@@ -104,7 +106,7 @@ export default function MapView({ drivers, userLocation, fromLoc, toLoc, preview
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden className="inline mr-2">
                   <path d="M22 16.92V21a1 1 0 0 1-1 1A19 19 0 0 1 2 3a1 1 0 0 1 1-1h3.09a1 1 0 0 1 1 .75c.12.5.38 1.74.86 2.98a1 1 0 0 1-.24 1l-1.27 1.27a16 16 0 0 0 6.58 6.58l1.27-1.27a1 1 0 0 1 1-.24c1.24.48 2.48.74 2.98.86a1 1 0 0 1 .75 1V21z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                कॉल करें ({selectedDriver.phone})
+                {t.transport?.callDriver || "Call Driver"} ({selectedDriver.phone})
               </a>
             </div>
           </InfoWindow>

@@ -14,12 +14,15 @@
     "@react-google-maps/api": "^2.20.8",
     "bcryptjs": "^2.4.3",
     "cheerio": "^1.0.0",
+    "i18next": "^26.6.0",
+    "i18next-browser-languagedetector": "^8.2.4",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.3.0",
     "next": "^14.2.0",
     "next-pwa": "^5.6.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
+    "react-i18next": "^17.1.10",
     "web-push": "^3.6.7"
   },
   "devDependencies": {

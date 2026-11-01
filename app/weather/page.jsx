@@ -116,7 +116,7 @@ export default function WeatherPage() {
             {Array.isArray(weather.hourly_advisory) && weather.hourly_advisory.length ? (
               <div className="space-y-2 rounded-2xl border border-blue-100 bg-white p-4">
                 <h4 className="text-sm font-semibold text-brand-textDark">
-                  {lang === "en" ? "Hourly Advisory" : lang === "pa" ? "ਘੰਟਾਵਾਰ ਸਲਾਹ" : "घंटावार सलाह"}
+                  {t.weather?.hourlyAdvisory || "Hourly Advisory"}
                 </h4>
                 <div className="space-y-2">
                   {weather.hourly_advisory.slice(0, 4).map((item) => (

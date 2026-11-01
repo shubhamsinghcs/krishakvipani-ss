@@ -54,7 +54,7 @@ export default function TransportPage() {
       if (data.fromLoc) setFromLoc(data.fromLoc);
       if (data.toLoc) setToLoc(data.toLoc);
     } catch (err) {
-      setError("Error finding drivers. Please try again.");
+      setError(t.transport?.searchError || "Error finding drivers. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -80,7 +80,7 @@ export default function TransportPage() {
         cropType: form.crop || "crops",
         quantity: form.quantity || "unknown",
         preferredDate: form.date || "ASAP",
-        farmerName: localStorage.getItem("farmer_name"),
+        farmerName: typeof window !== "undefined" ? localStorage.getItem("farmer_name") : "",
       },
       lang
     );
@@ -98,16 +98,18 @@ export default function TransportPage() {
     <div className="mx-auto max-w-7xl space-y-6 px-4 md:px-6 py-6 overflow-x-hidden">
       {/* Header */}
       <div className="bg-white/70 backdrop-blur-lg border border-white/40 rounded-2xl shadow-md p-5 space-y-2">
-        <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">Transport Marketplace</h1>
+        <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">
+          {t.transport?.title || "Transport Marketplace"}
+        </h1>
         <p className="text-sm text-gray-600">
-          Find local truck drivers and coordinate logistics directly via WhatsApp
+          {t.transport?.subtitle || "Find local truck drivers and coordinate logistics directly via WhatsApp"}
         </p>
         <div className="flex gap-2 flex-wrap mt-3">
           <Link
             href="/driver/register"
             className="inline-flex items-center gap-2 rounded-lg bg-green-600 text-white px-4 py-2 text-sm font-semibold hover:bg-green-700 transition"
           >
-            Register as Driver
+            {t.transport?.registerDriver || "Register as Driver"}
           </Link>
         </div>
       </div>
@@ -117,10 +119,12 @@ export default function TransportPage() {
         <div className="lg:col-span-1 border border-white/40 bg-white/70 backdrop-blur-lg rounded-2xl p-5 shadow-xl h-fit">
           <form onSubmit={handleSearch} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">From (Pickup Location) *</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                {t.transport?.pickupLocation || "From (Pickup Location) *"}
+              </label>
               <input
                 className="w-full min-h-[44px] rounded-lg border border-green-200 px-4 bg-white focus:ring-2 focus:ring-green-500 focus:outline-none transition"
-                placeholder="e.g., Patiala"
+                placeholder={t.transport?.pickupPlaceholder || "e.g., Patiala"}
                 value={form.fromMandi}
                 onChange={(e) => setForm({ ...form, fromMandi: e.target.value })}
                 required
@@ -128,10 +132,12 @@ export default function TransportPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">To (Destination) *</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                {t.transport?.destination || "To (Destination) *"}
+              </label>
               <input
                 className="w-full min-h-[44px] rounded-lg border border-green-200 px-4 bg-white focus:ring-2 focus:ring-green-500 focus:outline-none transition"
-                placeholder="e.g., Chandigarh"
+                placeholder={t.transport?.destPlaceholder || "e.g., Chandigarh"}
                 value={form.toMandi}
                 onChange={(e) => setForm({ ...form, toMandi: e.target.value })}
                 required
@@ -140,17 +146,21 @@ export default function TransportPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Crop Type</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  {t.transport?.cropType || "Crop Type"}
+                </label>
                 <input
                   className="w-full min-h-[44px] rounded-lg border border-green-200 px-4 bg-white focus:ring-2 focus:ring-green-500 focus:outline-none transition"
-                  placeholder="e.g., Wheat"
+                  placeholder={t.transport?.cropPlaceholder || "e.g., Wheat"}
                   value={form.crop}
                   onChange={(e) => setForm({ ...form, crop: e.target.value })}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Quantity (Tons)</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  {t.transport?.quantityTons || "Quantity (Tons)"}
+                </label>
                 <input
                   type="number"
                   className="w-full min-h-[44px] rounded-lg border border-green-200 px-4 bg-white focus:ring-2 focus:ring-green-500 focus:outline-none transition"
@@ -164,7 +174,9 @@ export default function TransportPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Preferred Date</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                {t.transport?.pickupDate || "Preferred Date"}
+              </label>
               <input
                 type="date"
                 className="w-full min-h-[44px] rounded-lg border border-green-200 px-4 bg-white focus:ring-2 focus:ring-green-500 focus:outline-none transition"
@@ -178,7 +190,7 @@ export default function TransportPage() {
               disabled={loading}
               className="w-full bg-green-600 text-white font-semibold rounded-lg min-h-[48px] hover:bg-green-700 hover:shadow-lg active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Searching..." : "Find Drivers"}
+              {loading ? (t.transport?.searching || "Searching drivers...") : (t.transport?.findDrivers || "Find Drivers")}
             </button>
 
             {error && (
@@ -192,7 +204,7 @@ export default function TransportPage() {
           {drivers.length > 0 && (
             <div className="mt-6 pt-6 border-t border-green-100">
               <h3 className="font-bold text-gray-900 mb-4 flex items-center justify-between">
-                <span>Available Drivers</span>
+                <span>{t.transport?.available || "Available Drivers"}</span>
                 <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
                   {drivers.length}
                 </span>

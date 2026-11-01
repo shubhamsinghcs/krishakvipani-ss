@@ -64,6 +64,13 @@ export default function Reminders() {
     }
   }, [notifyMode]);
 
+  const requestPermission = async () => {
+    if (!("Notification" in window)) return false;
+    if (Notification.permission === "granted") return true;
+    const p = await Notification.requestPermission();
+    return p === "granted";
+  };
+
   const startPolling = useCallback(async () => {
     const ok = await requestPermission();
     if (!ok) {
@@ -96,29 +103,18 @@ export default function Reminders() {
     if (typeof window !== "undefined") window.localStorage.setItem("reminders_notify_enabled", notificationsEnabled ? "true" : "false");
   }, [notificationsEnabled, notifyMode, startPolling, stopPolling]);
 
-  const requestPermission = async () => {
-    if (!("Notification" in window)) return false;
-    if (Notification.permission === "granted") return true;
-    const p = await Notification.requestPermission();
-    return p === "granted";
-  };
-
-  
-
   useEffect(() => {
     return () => {
       stopPolling();
     };
   }, [stopPolling]);
 
-  
-
   const showNotification = (r) => {
     try {
       if (Notification.permission !== "granted") return;
-      const title = r.title || "Reminder";
+      const notifTitle = r.title || "Reminder";
       const body = r.notes ? `${r.notes}` : "Reminder due";
-      const n = new Notification(title, { body, tag: `reminder-${r._id}` });
+      const n = new Notification(notifTitle, { body, tag: `reminder-${r._id}` });
       n.onclick = function () {
         window.focus();
       };
@@ -167,14 +163,14 @@ export default function Reminders() {
 
   return (
     <div className="rounded-2xl border border-white/40 bg-white/70 backdrop-blur-lg p-4 shadow-md space-y-3">
-      <h3 className="text-lg font-semibold">Reminders & Tasks</h3>
+      <h3 className="text-lg font-semibold">{t.reminders?.title || "Reminders & Tasks"}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="col-span-2 min-h-[44px] rounded-lg border px-3" />
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.reminders?.placeholderTitle || "Title"} className="col-span-2 min-h-[44px] rounded-lg border px-3" />
         <input value={dueDate} onChange={(e) => setDueDate(e.target.value)} type="date" className="min-h-[44px] rounded-lg border px-3" />
-        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes (optional)" className="col-span-3 rounded-lg border px-3 py-2" />
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t.reminders?.placeholderNotes || "Notes (optional)"} className="col-span-3 rounded-lg border px-3 py-2" />
         <div className="col-span-3 flex gap-2">
-          <button onClick={create} className="min-h-[44px] rounded-lg bg-green-600 text-white px-4">Add</button>
-          <button onClick={() => { setTitle(""); setNotes(""); setDueDate(""); }} className="min-h-[44px] rounded-lg border px-4">Clear</button>
+          <button onClick={create} className="min-h-[44px] rounded-lg bg-green-600 text-white px-4">{t.reminders?.add || "Add"}</button>
+          <button onClick={() => { setTitle(""); setNotes(""); setDueDate(""); }} className="min-h-[44px] rounded-lg border px-4">{t.reminders?.clear || "Clear"}</button>
         </div>
       </div>
 
@@ -182,19 +178,19 @@ export default function Reminders() {
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={notificationsEnabled} onChange={(e) => setNotificationsEnabled(e.target.checked)} />
-            <span>Enable reminders</span>
+            <span>{t.reminders?.enableReminders || "Enable reminders"}</span>
           </label>
           <select value={notifyMode} onChange={(e) => { setNotifyMode(e.target.value); if (typeof window !== "undefined") window.localStorage.setItem("reminders_notify_mode", e.target.value); }} className="text-sm rounded border px-2 py-1">
-            <option value="immediate">Immediate (gentle)</option>
-            <option value="daily">Daily summary</option>
+            <option value="immediate">{t.reminders?.immediate || "Immediate (gentle)"}</option>
+            <option value="daily">{t.reminders?.daily || "Daily summary"}</option>
           </select>
         </div>
-        <div className="text-xs text-gray-500">Notifications are opt-in and non-intrusive.</div>
+        <div className="text-xs text-gray-500">{t.reminders?.nonIntrusive || "Notifications are opt-in and non-intrusive."}</div>
       </div>
 
       <div className="space-y-2 mt-2">
-        {loading ? <div className="text-sm text-gray-500">Loading...</div> : null}
-        {list.length === 0 && !loading ? <div className="text-sm text-gray-500">No reminders yet.</div> : null}
+        {loading ? <div className="text-sm text-gray-500">{t.reminders?.loading || "Loading..."}</div> : null}
+        {list.length === 0 && !loading ? <div className="text-sm text-gray-500">{t.reminders?.noReminders || "No reminders yet."}</div> : null}
         {list.map((r) => (
           <div key={r._id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
             <div className="flex-1 min-w-0">
@@ -208,11 +204,11 @@ export default function Reminders() {
               <div className="text-xs text-gray-500">{r.dueDate ? new Date(r.dueDate).toLocaleDateString() : ''}</div>
               <div className="flex flex-col items-end gap-1">
                 <div className="flex gap-1">
-                  <button onClick={() => snooze(r._id, 10)} className="text-xs text-gray-700">Snooze 10m</button>
-                  <button onClick={() => snooze(r._id, 30)} className="text-xs text-gray-700">Snooze 30m</button>
-                  <button onClick={() => snooze(r._id, 60)} className="text-xs text-gray-700">Snooze 1h</button>
+                  <button onClick={() => snooze(r._id, 10)} className="text-xs text-gray-700">{t.reminders?.snooze10 || "Snooze 10m"}</button>
+                  <button onClick={() => snooze(r._id, 30)} className="text-xs text-gray-700">{t.reminders?.snooze30 || "Snooze 30m"}</button>
+                  <button onClick={() => snooze(r._id, 60)} className="text-xs text-gray-700">{t.reminders?.snooze60 || "Snooze 1h"}</button>
                 </div>
-                <button onClick={() => remove(r._id)} className="text-xs text-red-600 mt-2">Delete</button>
+                <button onClick={() => remove(r._id)} className="text-xs text-red-600 mt-2">{t.reminders?.delete || "Delete"}</button>
               </div>
             </div>
           </div>

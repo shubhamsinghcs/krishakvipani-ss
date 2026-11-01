@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLang } from "@/lib/LanguageContext";
 
 const MOCK_PRODUCTS = [
   { id: 1, name: "Pusa 44 Rice Seeds", category: "Seeds", price: 1200, unit: "10kg", badge: "Best Seller" },
@@ -10,6 +11,7 @@ const MOCK_PRODUCTS = [
 ];
 
 export default function MarketPage() {
+  const { t } = useLang();
   const [filter, setFilter] = useState("All");
   const [authError, setAuthError] = useState("");
   const [loadingId, setLoadingId] = useState(null);
@@ -27,22 +29,33 @@ export default function MarketPage() {
       });
       const json = await res.json();
       if (json.success) {
-        alert("आपका ऑर्डर सफलता पूर्वक बुक हो गया है!");
+        alert(t.shop?.orderSuccess || "Your order has been booked successfully!");
       } else {
         if (res.status === 401) setAuthError(json.message);
       }
     } catch {
-       setAuthError("सर्वर त्रुटि।");
+       setAuthError(t.shop?.serverError || "Server error.");
     } finally {
        setLoadingId(null);
     }
   };
 
+  const categoryLabels = {
+    All: t.shop?.all || "All",
+    Seeds: t.shop?.seeds || "Seeds",
+    Fertilizer: t.shop?.fertilizer || "Fertilizer",
+    Pesticide: t.shop?.pesticide || "Pesticide",
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-4 overflow-x-hidden">
       <div>
-        <h1 className="text-2xl font-bold text-brand-textDark md:text-3xl">दुकान (बीज व खाद)</h1>
-        <p className="mt-1 text-sm text-brand-textMid">सस्ते और असली उत्पाद सीधे कंपनियों से।</p>
+        <h1 className="text-2xl font-bold text-brand-textDark md:text-3xl">
+          {t.shop?.title || "Farm Inputs Shop"}
+        </h1>
+        <p className="mt-1 text-sm text-brand-textMid">
+          {t.shop?.subtitle || "Original certified seeds, fertilizers, and bio-pesticides direct from manufacturers."}
+        </p>
         {authError && <p className="text-xs text-red-500 font-bold mt-2">{authError}</p>}
       </div>
 
@@ -53,7 +66,7 @@ export default function MarketPage() {
             onClick={() => setFilter(f)}
             className={`min-h-[36px] px-4 rounded-full text-sm font-semibold transition active:scale-95 whitespace-nowrap ${filter === f ? "bg-green-600 text-white" : "bg-white border border-green-200 text-gray-600 shadow-sm"}`}
           >
-            {f === "All" ? "सभी" : f === "Seeds" ? "बीज" : f === "Fertilizer" ? "खाद" : "कीटनाशक"}
+            {categoryLabels[f] || f}
           </button>
         ))}
       </div>
@@ -64,7 +77,7 @@ export default function MarketPage() {
              <div>
                {p.badge && <span className="inline-block px-2.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold mb-2">{p.badge}</span>}
                <h3 className="font-bold text-gray-800">{p.name}</h3>
-               <p className="text-sm text-gray-500 mt-0.5">{p.category} | {p.unit}</p>
+               <p className="text-sm text-gray-500 mt-0.5">{categoryLabels[p.category] || p.category} | {p.unit}</p>
              </div>
              <div className="mt-4 flex items-center justify-between">
                <span className="text-xl font-bold text-brand-accent">₹{p.price}</span>
@@ -73,7 +86,7 @@ export default function MarketPage() {
                   disabled={loadingId === p.id}
                   className="min-h-[40px] px-6 rounded-xl bg-green-600 text-white font-semibold text-sm hover:bg-green-700 active:scale-95 transition-all shadow disabled:opacity-50"
                 >
-                 {loadingId === p.id ? "ऑर्डर हो रहा है..." : "खरीदें"}
+                 {loadingId === p.id ? (t.common?.loading || "Processing...") : (t.shop?.bookOrder || "Buy")}
                </button>
              </div>
           </div>

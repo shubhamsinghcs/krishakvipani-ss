@@ -88,7 +88,7 @@ export default function DriverRegisterPage() {
       <div className="mx-auto max-w-2xl px-4 md:px-6 space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Join Our Network</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{t.driver?.registerTitle || "Join Our Network"}</h1>
            <p className="text-gray-600">{t.driver?.registerSubtitle || "Register as a driver and connect directly with farmers"}</p>
            <p className="text-sm text-gray-500">{t.driver?.registerBenefit || "Earn per trip • No commission • Direct payments"}</p>
         </div>

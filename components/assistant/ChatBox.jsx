@@ -67,6 +67,7 @@ export default function ChatBox() {
     setLoading(true);
     try {
       const controller = new AbortController();
+      const tId = setTimeout(() => controller.abort(), 30000);
       const history = messages
         .filter(m => m.id !== "0" && !String(m.id).startsWith("w-"))
         .slice(-5)

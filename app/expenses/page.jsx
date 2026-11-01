@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import ProfitCalculator from "@/components/planner/ProfitCalculator";
 import MonthlyExpenseChart from "@/components/MonthlyExpenseChart";
 import { computeTotalExpenses, computeMonthlyTotals, filterByDateRange } from "@/lib/financials";
+import { useLang } from "@/lib/LanguageContext";
 
 export default function ExpensesPage() {
+  const { t } = useLang();
   const [expenses, setExpenses] = useState([]);
   const [desc, setDesc] = useState("");
   const [amount, setAmount] = useState("");
@@ -133,7 +135,7 @@ export default function ExpensesPage() {
       <div className="flex justify-between items-center bg-green-600 rounded-2xl p-6 shadow-md text-white">
         <div>
           <h1 className="text-xl font-bold opacity-90">
-            {startDate || endDate ? "Filtered Total Expenses" : "Total Expenses"}
+            {startDate || endDate ? (t.expenses?.filteredTotal || "Filtered Total Expenses") : (t.expenses?.totalExpenses || "Total Expenses")}
           </h1>
           <p className="text-3xl font-extrabold mt-1">₹{total.toLocaleString("en-IN")}</p>
           {(startDate || endDate) && (
@@ -152,20 +154,20 @@ export default function ExpensesPage() {
 
       {/* Add expense form */}
       <div className="bg-white/70 backdrop-blur-lg border border-white/40 rounded-2xl shadow-xl p-5 space-y-4">
-        <h2 className="font-bold text-gray-800">नया खर्च जोड़ें</h2>
+        <h2 className="font-bold text-gray-800">{t.expenses?.newExpense || "Add New Expense"}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">विवरण</span>
+            <span className="text-sm font-medium text-gray-700">{t.expenses?.desc || "Description"}</span>
             <input
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
-              placeholder="उदा: बीज"
+              placeholder={t.expenses?.descPlaceholder || "e.g., Seeds"}
               className="w-full min-h-[44px] rounded-xl border border-green-200 px-3 outline-none focus:ring-2 focus:ring-green-500"
               aria-label="Expense description"
             />
           </label>
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">राशि (₹)</span>
+            <span className="text-sm font-medium text-gray-700">{t.expenses?.amount || "Amount (₹)"}</span>
             <input
               type="number"
               min="0.01"
@@ -178,19 +180,19 @@ export default function ExpensesPage() {
             />
           </label>
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">श्रेणी</span>
+            <span className="text-sm font-medium text-gray-700">{t.expenses?.category || "Category"}</span>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="w-full min-h-[44px] rounded-xl border border-green-200 px-3 outline-none focus:ring-2 focus:ring-green-500"
               aria-label="Expense category"
             >
-              <option value="other">अन्य</option>
-              <option value="seeds">बीज</option>
-              <option value="fertilizer">उर्वरक</option>
-              <option value="labor">श्रम</option>
-              <option value="transport">परिवहन</option>
-              <option value="equipment">उपकरण</option>
+              <option value="other">{t.expenses?.other || "Other"}</option>
+              <option value="seeds">{t.expenses?.seeds || "Seeds"}</option>
+              <option value="fertilizer">{t.expenses?.fertilizer || "Fertilizer"}</option>
+              <option value="labor">{t.expenses?.labor || "Labor"}</option>
+              <option value="transport">{t.expenses?.transport || "Transport"}</option>
+              <option value="equipment">{t.expenses?.equipment || "Equipment"}</option>
             </select>
           </label>
           <div className="flex items-end gap-3">
@@ -200,14 +202,14 @@ export default function ExpensesPage() {
               className="flex-1 min-h-[44px] rounded-xl bg-green-600 text-white font-semibold active:scale-95 transition-all shadow disabled:opacity-50"
               aria-label="Save expense"
             >
-              खर्च सुरक्षित करें
+              {t.expenses?.saveExpense || "Save Expense"}
             </button>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3" aria-live="polite">
           {authError && <span className="text-xs text-red-500 font-semibold">{authError}</span>}
           <span className="text-xs text-gray-500">
-            {typeof navigator !== "undefined" && navigator.onLine ? "Online" : "Offline"}
+            {typeof navigator !== "undefined" && navigator.onLine ? (t.expenses?.online || "Online") : (t.expenses?.offline || "Offline")}
           </span>
         </div>
       </div>
@@ -215,8 +217,8 @@ export default function ExpensesPage() {
       {/* Chart + stats + list */}
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-bold text-gray-800 mt-2">हाल के खर्च</h2>
-          <div className="text-sm text-gray-500">Last 6 months</div>
+          <h2 className="font-bold text-gray-800 mt-2">{t.expenses?.recentExpenses || "Recent Expenses"}</h2>
+          <div className="text-sm text-gray-500">{t.expenses?.last6Months || "Last 6 months"}</div>
         </div>
 
         <div className="bg-white/60 rounded-xl p-3 border border-gray-100 flex items-start gap-4">
@@ -225,12 +227,12 @@ export default function ExpensesPage() {
             <MonthlyExpenseChart data={monthsData} />
           </div>
           <div className="w-56 shrink-0 text-right text-xs text-gray-600 space-y-2">
-            <div>Total: ₹{total.toLocaleString("en-IN")}</div>
-            <div>Avg/month: ₹{avgPerMonth.toLocaleString("en-IN")}</div>
+            <div>{t.expenses?.totalLabel || "Total:"} ₹{total.toLocaleString("en-IN")}</div>
+            <div>{t.expenses?.avgMonthLabel || "Avg/month:"} ₹{avgPerMonth.toLocaleString("en-IN")}</div>
             <fieldset className="space-y-2" aria-label="Date range filter and CSV export">
               <legend className="sr-only">Date range filter and CSV export</legend>
               <div className="flex items-center gap-2 justify-end">
-                <label className="sr-only" htmlFor="expenses-start-date">Start date</label>
+                <label className="sr-only" htmlFor="expenses-start-date">{t.expenses?.startDate || "Start date"}</label>
                 <input
                   id="expenses-start-date"
                   type="date"
@@ -238,7 +240,7 @@ export default function ExpensesPage() {
                   onChange={(e) => setStartDate(e.target.value)}
                   className="text-xs rounded border px-2 py-1"
                 />
-                <label className="sr-only" htmlFor="expenses-end-date">End date</label>
+                <label className="sr-only" htmlFor="expenses-end-date">{t.expenses?.endDate || "End date"}</label>
                 <input
                   id="expenses-end-date"
                   type="date"
@@ -253,18 +255,18 @@ export default function ExpensesPage() {
                   onClick={() => { setStartDate(""); setEndDate(""); }}
                   className="text-xs text-gray-500 underline-offset-2 hover:underline"
                 >
-                  Clear dates
+                  {t.expenses?.clearDates || "Clear dates"}
                 </button>
                 <button
                   type="button"
                   onClick={exportCsv}
                   className="text-xs text-gray-700 underline-offset-2 hover:underline"
                 >
-                  Export CSV
+                  {t.expenses?.exportCsv || "Export CSV"}
                 </button>
               </div>
             </fieldset>
-            <div className="text-xs text-gray-500">Saved directly to MongoDB.</div>
+            <div className="text-xs text-gray-500">{t.expenses?.savedDirectly || "Saved directly to MongoDB."}</div>
           </div>
         </div>
 
@@ -275,7 +277,7 @@ export default function ExpensesPage() {
             <div className="lg:col-span-2 space-y-3">
               {filteredExpenses.length === 0 ? (
                 <p className="text-sm text-gray-500 bg-gray-50 rounded-xl p-4 text-center">
-                  No expenses found for the selected range.
+                  {t.expenses?.noExpenses || "No expenses found for the selected range."}
                 </p>
               ) : (
                 filteredExpenses.map((e) => (
@@ -310,7 +312,7 @@ export default function ExpensesPage() {
                         className="text-xs text-gray-500 underline-offset-2 hover:underline"
                         aria-label={`Delete expense ${e.desc}`}
                       >
-                        Delete
+                        {t.expenses?.delete || "Delete"}
                       </button>
                     </div>
                   </div>

@@ -1,10 +1,10 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { defaultLanguage, translations } from "@/lib/i18n";
+import { I18nextProvider } from "react-i18next";
+import i18n, { defaultLanguage, supportedLanguages, languageOptions, translations } from "@/lib/i18n";
 
 const STORAGE_KEY = "krishakvipani-lang";
-const supported = ["en", "hi", "pa", "bn", "gu", "mr", "ta", "te", "kn", "ml", "or", "as", "ur", "sa", "ks", "ne", "sd", "kok", "mai", "mni", "doi", "brx"];
 
 const LanguageContext = createContext(null);
 
@@ -14,66 +14,112 @@ export function LanguageProvider({ children }) {
 
   useEffect(() => {
     setMounted(true);
-    const saved = window.localStorage.getItem(STORAGE_KEY) || (() => {
-      try {
+    let initial = defaultLanguage;
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY) || (() => {
         const c = document.cookie.split(";").map((s) => s.trim()).find((s) => s.startsWith("krishakvipani_lang="));
         return c ? c.split("=")[1] : null;
-      } catch (e) {
-        return null;
-      }
-    })();
+      })();
 
-    const initial = saved && supported.includes(saved) ? saved : defaultLanguage;
+      if (saved && supportedLanguages.includes(saved)) {
+        initial = saved;
+      } else {
+        // If there was an invalid/unsupported language stored, clean it up and reset to default
+        if (saved && !supportedLanguages.includes(saved)) {
+          window.localStorage.setItem(STORAGE_KEY, defaultLanguage);
+          document.cookie = `krishakvipani_lang=${defaultLanguage}; path=/; max-age=${60 * 60 * 24 * 365}`;
+        }
+        if (i18n.language && supportedLanguages.includes(i18n.language)) {
+          initial = i18n.language;
+        } else {
+          initial = defaultLanguage;
+        }
+      }
+    } catch (e) {}
+
     setLang(initial);
+    if (i18n.language !== initial) {
+      i18n.changeLanguage(initial);
+    }
     try {
       document.documentElement.lang = initial;
     } catch (e) {}
   }, []);
 
   const changeLang = (next) => {
-    if (!supported.includes(next)) return;
-    setLang(next);
+    // If not supported, gracefully resolve to defaultLanguage
+    const target = supportedLanguages.includes(next) ? next : defaultLanguage;
+    setLang(target);
+    if (i18n.language !== target) {
+      i18n.changeLanguage(target);
+    }
     try {
-      window.localStorage.setItem(STORAGE_KEY, next);
-      document.cookie = `krishakvipani_lang=${next}; path=/; max-age=${60 * 60 * 24 * 365}`;
-      document.documentElement.lang = next;
+      window.localStorage.setItem(STORAGE_KEY, target);
+      document.cookie = `krishakvipani_lang=${target}; path=/; max-age=${60 * 60 * 24 * 365}`;
+      document.documentElement.lang = target;
     } catch (e) {}
   };
 
   useEffect(() => {
-    try {
-      document.documentElement.lang = lang;
-      document.cookie = `krishakvipani_lang=${lang}; path=/; max-age=${60 * 60 * 24 * 365}`;
-    } catch (e) {}
+    const handleLanguageChanged = (newLang) => {
+      const target = supportedLanguages.includes(newLang) ? newLang : defaultLanguage;
+      if (target !== lang) {
+        setLang(target);
+        try {
+          window.localStorage.setItem(STORAGE_KEY, target);
+          document.cookie = `krishakvipani_lang=${target}; path=/; max-age=${60 * 60 * 24 * 365}`;
+          document.documentElement.lang = target;
+        } catch (e) {}
+      }
+    };
+
+    i18n.on("languageChanged", handleLanguageChanged);
+    return () => {
+      i18n.off("languageChanged", handleLanguageChanged);
+    };
   }, [lang]);
 
   const value = useMemo(() => {
-    const tObj = translations[lang] || translations[defaultLanguage];
+    const effectiveLang = supportedLanguages.includes(lang) ? lang : defaultLanguage;
+    const tObj = translations[effectiveLang] || translations[defaultLanguage];
     const defaultObj = translations[defaultLanguage];
-    const tFunc = (key) => {
+
+    const tFunc = (key, options) => {
       if (!key) return "";
-      const primary = key.split('.').reduce((o, i) => o?.[i], tObj);
+      try {
+        if (i18n.isInitialized) {
+          const res = i18n.t(key, { lng: effectiveLang, ...options });
+          if (res !== key && res !== undefined) return res;
+        }
+      } catch (e) {}
+
+      const primary = key.split(".").reduce((o, i) => o?.[i], tObj);
       if (primary !== undefined) return primary;
-      return key.split('.').reduce((o, i) => o?.[i], defaultObj);
+      const fallback = key.split(".").reduce((o, i) => o?.[i], defaultObj);
+      return fallback !== undefined ? fallback : key;
     };
-    // Assign all properties of tObj to tFunc so existing t.common.appName works
+
+    // Assign properties to support both t("namespace.key") and t.namespace?.key
     Object.assign(tFunc, defaultObj, tObj);
-    
+
     return {
-      lang,
+      lang: effectiveLang,
       changeLang,
-      setLang: changeLang, // Alias for new requirement
+      setLang: changeLang,
       t: tFunc,
+      i18n,
+      languageOptions,
+      supportedLanguages,
+      defaultLanguage,
     };
   }, [lang]);
 
-  // Wrap in a div that prevents visibility until mounted to avoid hydration errors
   return (
-    <LanguageContext.Provider value={value}>
-      <div style={!mounted ? { visibility: "hidden" } : { display: "contents" }}>
+    <I18nextProvider i18n={i18n}>
+      <LanguageContext.Provider value={value}>
         {children}
-      </div>
-    </LanguageContext.Provider>
+      </LanguageContext.Provider>
+    </I18nextProvider>
   );
 }
 
@@ -85,7 +131,8 @@ export function useLang() {
   return context;
 }
 
-// Alias for new requirement
 export function useLanguage() {
   return useLang();
 }
+
+export default LanguageContext;

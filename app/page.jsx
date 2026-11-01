@@ -26,7 +26,6 @@ export default function DashboardPage() {
   const [loadingPrices, setLoadingPrices] = useState(true);
 
   const userName = "Kisan"; 
-  const userCrop = "Wheat Farmer";
 
   useEffect(() => {
     if (locLoading) return;
@@ -65,33 +64,55 @@ export default function DashboardPage() {
   }, [district, locLoading]);
 
   const dateText = useMemo(() => {
-    return new Date().toLocaleDateString(lang === "en" ? "en-IN" : "hi-IN", {
-      weekday: "short", day: "numeric", month: "short", year: "numeric"
-    });
+    try {
+      return new Date().toLocaleDateString(lang === "en" ? "en-IN" : `${lang}-IN`, {
+        weekday: "short", day: "numeric", month: "short", year: "numeric"
+      });
+    } catch {
+      return new Date().toLocaleDateString("en-IN", {
+        weekday: "short", day: "numeric", month: "short", year: "numeric"
+      });
+    }
   }, [lang]);
 
   const aiInsight = useMemo(() => {
-    if (loadingWeather) return "Analyzing local conditions...";
-    if (!weather) return "Conditions look stable today.";
+    if (loadingWeather) return t.dashboard?.aiInsightAnalyzing || "Analyzing local conditions...";
+    if (!weather) return t.dashboard?.aiInsightStable || "Conditions look stable today.";
     
     const temp = weather.temp || 0;
     const rain = weather.rain_mm || 0;
     const humidity = weather.humidity || 0;
     
-    if (temp > 38) return "High temperature alert! Prefer evening irrigation to avoid evaporation.";
-    if (rain > 60 || weather.rainLikely) return "Heavy rain expected. Stop irrigation and postpone pesticide spraying.";
-    if (humidity > 80) return "High humidity detected. Increased risk of fungal diseases, monitor crops closely.";
+    if (temp > 38) return t.dashboard?.aiInsightHeat || "High temperature alert! Prefer evening irrigation to avoid evaporation.";
+    if (rain > 60 || weather.rainLikely) return t.dashboard?.aiInsightRain || "Heavy rain expected. Stop irrigation and postpone pesticide spraying.";
+    if (humidity > 80) return t.dashboard?.aiInsightHumidity || "High humidity detected. Increased risk of fungal diseases, monitor crops closely.";
     
-    return "Weather is optimal for general farm activities today.";
-  }, [weather, loadingWeather]);
+    return t.dashboard?.aiInsightDefault || "Weather is optimal for general farm activities today.";
+  }, [weather, loadingWeather, t]);
 
   const farmPlan = useMemo(() => {
-    if (loadingWeather) return ["Loading your plan..."];
-    if (!weather) return ["Check crop health", "Review market prices", "Plan irrigation"];
-    if (weather.temp > 35) return ["Irrigate early morning", "Avoid afternoon fieldwork", "Check soil moisture"];
-    if (weather.rainLikely) return ["Clear drainage channels", "Secure equipment", "Delay fertilizer application"];
-    return ["Weed clearing", "Apply fertilizers if needed", "Monitor for pests"];
-  }, [weather, loadingWeather]);
+    if (loadingWeather) return [t.common?.loading || "Loading..."];
+    if (!weather) return [
+      t.dashboard?.planDefault1 || "Check crop health",
+      t.dashboard?.planDefault2 || "Review market prices",
+      t.dashboard?.planDefault3 || "Plan irrigation"
+    ];
+    if (weather.temp > 35) return [
+      t.dashboard?.planHeat1 || "Irrigate early morning",
+      t.dashboard?.planHeat2 || "Avoid afternoon fieldwork",
+      t.dashboard?.planHeat3 || "Check soil moisture"
+    ];
+    if (weather.rainLikely) return [
+      t.dashboard?.planRain1 || "Clear drainage channels",
+      t.dashboard?.planRain2 || "Secure equipment",
+      t.dashboard?.planRain3 || "Delay fertilizer application"
+    ];
+    return [
+      t.dashboard?.planDefault1 || "Weed clearing",
+      t.dashboard?.planDefault2 || "Apply fertilizers if needed",
+      t.dashboard?.planDefault3 || "Monitor for pests"
+    ];
+  }, [weather, loadingWeather, t]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 md:px-6 py-6 space-y-6 min-h-screen">
@@ -99,16 +120,16 @@ export default function DashboardPage() {
       {/* Personalized Header */}
       <section className="flex flex-col gap-3">
         <h1 className="text-3xl font-semibold text-gray-800 tracking-tight">
-          Hello {userName}
+          {t.dashboard?.greeting || t.dashboard?.hello || "Hello"} {userName}
         </h1>
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 backdrop-blur-lg border border-white/40 shadow-sm px-3 py-1.5 text-xs font-semibold text-gray-700">
              <IconLocation />
-             {locLoading ? "Locating..." : district}
+             {locLoading ? (t.common?.loading || "Locating...") : district}
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 backdrop-blur-lg border border-white/40 shadow-sm px-3 py-1.5 text-xs font-semibold text-gray-700">
              <IconCloud />
-             {loadingWeather ? "..." : (weather ? `${weather.temp}°C` : "Weather")}
+             {loadingWeather ? "..." : (weather ? `${weather.temp}°C` : (t.nav?.weather || "Weather"))}
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 backdrop-blur-lg border border-white/40 shadow-sm px-3 py-1.5 text-xs font-semibold text-gray-700">
              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
@@ -116,7 +137,7 @@ export default function DashboardPage() {
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50/80 border border-blue-200/50 shadow-sm px-3 py-1.5 text-xs font-semibold text-blue-800">
              <IconSparkles />
-             {userCrop}
+             {t.dashboard?.wheatFarmer || "Wheat Farmer"}
           </span>
         </div>
       </section>
@@ -125,7 +146,7 @@ export default function DashboardPage() {
       <section className="bg-white/70 backdrop-blur-lg border border-white/40 shadow-xl rounded-2xl p-6 relative overflow-hidden group hover:scale-[1.01] transition-all duration-200">
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-green-400/10 rounded-full blur-3xl" />
         <h2 className="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-2">
-          <IconBrain className="text-green-600" /> AI Insight
+          <IconBrain className="text-green-600" /> {t.dashboard?.aiInsight || "AI Insight"}
         </h2>
         <p className="text-gray-600 font-medium leading-relaxed relative z-10">
           {aiInsight}
@@ -139,8 +160,8 @@ export default function DashboardPage() {
             <IconCamera />
           </div>
           <div>
-            <span className="text-sm font-semibold text-gray-800 block">Scan Crop</span>
-            <span className="text-xs text-gray-500">Detect diseases instantly</span>
+            <span className="text-sm font-semibold text-gray-800 block">{t.dashboard?.scanCrop || "Scan Crop"}</span>
+            <span className="text-xs text-gray-500">{t.dashboard?.detectDiseases || "Detect diseases instantly"}</span>
           </div>
         </Link>
         <Link href="/assistant" className="flex items-center gap-4 p-4 bg-white/70 backdrop-blur-lg border border-white/40 shadow-xl rounded-2xl hover:scale-[1.01] transition-all duration-200 active:scale-95">
@@ -148,8 +169,8 @@ export default function DashboardPage() {
             <IconRobot />
           </div>
           <div>
-            <span className="text-sm font-semibold text-gray-800 block">Ask Assistant</span>
-            <span className="text-xs text-gray-500">24/7 farming advice</span>
+            <span className="text-sm font-semibold text-gray-800 block">{t.dashboard?.askAssistant || "Ask Assistant"}</span>
+            <span className="text-xs text-gray-500">{t.dashboard?.farmingAdvice || "24/7 farming advice"}</span>
           </div>
         </Link>
         <Link href="/transport" className="flex items-center gap-4 p-4 bg-white/70 backdrop-blur-lg border border-white/40 shadow-xl rounded-2xl hover:scale-[1.01] transition-all duration-200 active:scale-95">
@@ -157,8 +178,8 @@ export default function DashboardPage() {
             <IconTruck />
           </div>
           <div>
-            <span className="text-sm font-semibold text-gray-800 block">Find Transport</span>
-            <span className="text-xs text-gray-500">Search local trucks</span>
+            <span className="text-sm font-semibold text-gray-800 block">{t.dashboard?.findTransport || "Find Transport"}</span>
+            <span className="text-xs text-gray-500">{t.dashboard?.searchTrucks || "Search local trucks"}</span>
           </div>
         </Link>
       </section>
@@ -173,11 +194,11 @@ export default function DashboardPage() {
         <div className="bg-white/70 backdrop-blur-lg border border-white/40 shadow-xl rounded-2xl p-6 hover:scale-[1.01] transition-all duration-200">
           <div className="flex justify-between items-start mb-4">
             <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-              <IconTrend className="text-green-600" /> Mandi Prices
+              <IconTrend className="text-green-600" /> {t.dashboard?.mandiTitle || "Mandi Prices"}
             </h2>
             <div className="text-right">
-              <span className="inline-block px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold rounded-md uppercase tracking-wider border border-green-100">Live</span>
-              <p className="text-[10px] text-gray-600 mt-1">Updated 2 min ago</p>
+              <span className="inline-block px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold rounded-md uppercase tracking-wider border border-green-100">{t.dashboard?.liveBadge || "Live"}</span>
+              <p className="text-[10px] text-gray-600 mt-1">{t.dashboard?.updatedAgo || "Updated 2 min ago"}</p>
             </div>
           </div>
           
@@ -195,7 +216,7 @@ export default function DashboardPage() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-gray-500 bg-gray-50/50 p-3 rounded-xl text-center">No live prices found.</p>
+              <p className="text-sm text-gray-500 bg-gray-50/50 p-3 rounded-xl text-center">{t.dashboard?.noPrices || "No live prices found."}</p>
             )}
           </div>
         </div>
@@ -205,10 +226,10 @@ export default function DashboardPage() {
           <div className="flex justify-between items-start mb-4">
             <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-              Today&apos;s Plan
+              {t.dashboard?.todaysPlan || "Today's Plan"}
             </h2>
             <div className="text-right">
-              <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md uppercase tracking-wider border border-blue-100">Smart</span>
+              <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md uppercase tracking-wider border border-blue-100">{t.dashboard?.smartBadge || "Smart"}</span>
             </div>
           </div>
           

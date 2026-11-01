@@ -9,34 +9,10 @@ import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const { toggleSidebar } = useSidebar();
-  const { lang, changeLang, t } = useLang();
+  const { lang, changeLang, t, languageOptions = [] } = useLang();
   const [theme, setTheme] = useState(() => typeof window !== 'undefined' ? window.localStorage.getItem('theme') || 'light' : 'light');
   const regionLabel = `${DEFAULT_REGION_STATE}, ${DEFAULT_REGION_CITY}`;
   useInitTheme(setTheme);
-  const languageOptions = [
-    { key: "en", label: "English" },
-    { key: "hi", label: "हिंदी" },
-    { key: "pa", label: "ਪੰਜਾਬੀ" },
-    { key: "bn", label: "বাংলা" },
-    { key: "gu", label: "ગુજરાતી" },
-    { key: "mr", label: "मराठी" },
-    { key: "ta", label: "தமிழ்" },
-    { key: "te", label: "తెలుగు" },
-    { key: "kn", label: "ಕನ್ನಡ" },
-    { key: "ml", label: "മലയാളം" },
-    { key: "or", label: "ଓଡ଼ିଆ" },
-    { key: "as", label: "অসমীয়া" },
-    { key: "ur", label: "اردو" },
-    { key: "sa", label: "संस्कृतम्" },
-    { key: "ks", label: "कॉशुर" },
-    { key: "ne", label: "नेपाली" },
-    { key: "sd", label: "سنڌي" },
-    { key: "kok", label: "कोंकणी" },
-    { key: "mai", label: "मैथिली" },
-    { key: "mni", label: "মৈতৈলোন্" },
-    { key: "doi", label: "डोगरी" },
-    { key: "brx", label: "बड़ो" }
-  ];
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 h-16 bg-white/70 backdrop-blur-lg border border-white/40 shadow-sm transition-all duration-300">
@@ -67,8 +43,8 @@ export default function Navbar() {
               aria-label="Select Language"
             >
               {languageOptions.map((item) => (
-                <option key={item.key} value={item.key}>
-                  {item.label}
+                <option key={item.key || item.code} value={item.key || item.code}>
+                  {item.label || item.name}
                 </option>
               ))}
             </select>

@@ -12,7 +12,7 @@ import { useSmartLocation } from "@/lib/hooks/useSmartLocation";
 
 const MapView = dynamic(() => import("@/components/transport/MapView"), {
   ssr: false,
-  loading: () => <div className="h-[300px] bg-green-50 animate-pulse rounded-2xl flex items-center justify-center">नक्शा लोड हो रहा है...</div>
+  loading: () => <div className="h-[300px] bg-green-50 animate-pulse rounded-2xl flex items-center justify-center">Loading map...</div>
 });
 
 export default function MandiPage() {

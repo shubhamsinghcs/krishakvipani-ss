@@ -1,0 +1,7 @@
+# DVC Ignore file
+*.pyc
+__pycache__/
+.pytest_cache/
+checkpoints/*.tmp
+mlruns/
+.env

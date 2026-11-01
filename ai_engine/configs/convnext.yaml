@@ -1,0 +1,19 @@
+model:
+  architecture: "convnext_tiny"
+  pretrained_weights: "imagenet21k_ft_in1k"
+  backbone: "timm/convnext_tiny.fb_in22k_ft_in1k"
+  embedding_dim: 768
+  dropout: 0.3
+  stochastic_depth: 0.2
+
+training:
+  epochs_stage1_head_only: 5
+  epochs_stage2_fine_tune: 30
+  learning_rate_head: 8.0e-4
+  learning_rate_backbone: 8.0e-5
+  weight_decay: 1.0e-4
+  label_smoothing: 0.1
+  scheduler: "cosine_annealing_warm_restarts"
+  min_lr: 5.0e-7
+  early_stopping_patience: 7
+  gradient_clip_norm: 1.0

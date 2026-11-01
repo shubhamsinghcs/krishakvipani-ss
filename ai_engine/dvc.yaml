@@ -1,0 +1,59 @@
+stages:
+  data_preparation:
+    cmd: python src/data/dataset.py --config configs/base_config.yaml
+    deps:
+      - data/raw_field_images
+      - src/data/dataset.py
+      - configs/base_config.yaml
+    outs:
+      - data/processed_splits
+
+  train_efficientnet_v2:
+    cmd: python src/training/train.py --config configs/efficientnet_v2.yaml
+    deps:
+      - data/processed_splits
+      - src/training/train.py
+      - src/models/factory.py
+      - configs/efficientnet_v2.yaml
+    outs:
+      - checkpoints/efficientnet_v2_best.pt
+
+  train_mobilenet_v3:
+    cmd: python src/training/train.py --config configs/mobilenet_v3.yaml
+    deps:
+      - data/processed_splits
+      - src/training/train.py
+      - src/models/factory.py
+      - configs/mobilenet_v3.yaml
+    outs:
+      - checkpoints/mobilenet_v3_best.pt
+
+  train_convnext:
+    cmd: python src/training/train.py --config configs/convnext.yaml
+    deps:
+      - data/processed_splits
+      - src/training/train.py
+      - src/models/factory.py
+      - configs/convnext.yaml
+    outs:
+      - checkpoints/convnext_best.pt
+
+  benchmark_evaluation:
+    cmd: python src/evaluation/benchmark.py --config configs/base_config.yaml
+    deps:
+      - data/processed_splits/test_field_verified
+      - checkpoints/efficientnet_v2_best.pt
+      - checkpoints/mobilenet_v3_best.pt
+      - checkpoints/convnext_best.pt
+      - src/evaluation/benchmark.py
+      - src/evaluation/metrics.py
+    metrics:
+      - reports/benchmark_metrics.json:
+          cache: false
+    plots:
+      - reports/confusion_matrix_efficientnet_v2.png:
+          cache: false
+      - reports/confusion_matrix_convnext.png:
+          cache: false
+      - reports/calibration_curves.png:
+          cache: false

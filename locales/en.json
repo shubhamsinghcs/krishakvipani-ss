@@ -459,7 +459,18 @@
     "isCorrect": "Is this diagnosis accurate?",
     "feedbackThanks": "Thank you! Your feedback has been recorded.",
     "correct": "Correct",
-    "incorrect": "Incorrect"
+    "incorrect": "Incorrect",
+    "unknownTitle": "Inconclusive / Unknown Condition",
+    "unknownDesc": "The visual symptoms cannot be determined with safe confidence. The condition may be ambiguous, an unvalidated disease, or due to environmental stress. Do not apply chemical pesticides without physical verification.",
+    "ambiguousBadge": "Possible Match (Overlapping Symptoms)",
+    "differentialTitle": "Alternative Differential Diagnoses",
+    "differentialDesc": "The photographed symptoms share visual similarities with other conditions. Verify these alternatives with an expert:",
+    "kvkHelpline": "Call Kisan Call Centre (Toll-Free 1800-180-1551)",
+    "consultExpert": "Consult Agricultural Officer / KVK",
+    "disclaimerText": "Advisory Disclaimer: AI diagnoses are screening aids and do not constitute guaranteed prescriptions. Consult your local KVK or agri officer before chemical application.",
+    "retakeBetter": "Retake Clearer Photo",
+    "unsupportedCropTitle": "Unsupported Crop",
+    "unsupportedCropDesc": "Krishak Vipani clinical AI currently validates 10 Indian crops. To avoid misleading recommendations, we refuse to guess on unvalidated crops."
   },
   "weather": {
     "title": "Weather Update",

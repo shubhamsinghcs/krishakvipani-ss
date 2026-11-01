@@ -1,0 +1,19 @@
+model:
+  architecture: "efficientnet_v2_s"
+  pretrained_weights: "imagenet21k_ft_in1k"
+  backbone: "timm/tf_efficientnetv2_s.in21k_ft_in1k"
+  embedding_dim: 1280
+  dropout: 0.3
+  stochastic_depth: 0.2
+
+training:
+  epochs_stage1_head_only: 5
+  epochs_stage2_fine_tune: 25
+  learning_rate_head: 1.0e-3
+  learning_rate_backbone: 1.0e-4
+  weight_decay: 1.0e-4
+  label_smoothing: 0.1
+  scheduler: "cosine_annealing_warm_restarts"
+  min_lr: 1.0e-6
+  early_stopping_patience: 6
+  gradient_clip_norm: 1.0

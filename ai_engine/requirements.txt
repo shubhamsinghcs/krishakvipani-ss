@@ -1,0 +1,28 @@
+# Krishak Vipani - AI Computer Vision Production Stack
+# Core Deep Learning Framework
+torch>=2.2.0
+torchvision>=0.17.0
+timm>=0.9.16
+
+# Image Processing & Computer Vision
+opencv-python-headless>=4.9.0
+pillow>=10.2.0
+albumentations>=1.4.0
+
+# Production Inference Server
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+python-multipart>=0.0.9
+
+# MLOps: Experiment Tracking & Data Versioning
+mlflow>=2.11.0
+dvc>=3.48.0
+
+# Scientific Computing & Evaluation
+numpy>=1.26.0
+scikit-learn>=1.4.0
+scipy>=1.12.0
+pyyaml>=6.0.1
+requests>=2.31.0
+pytest>=8.0.0

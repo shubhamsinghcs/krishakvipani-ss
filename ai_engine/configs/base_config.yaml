@@ -1,0 +1,34 @@
+project:
+  name: "krishakvipani-vision"
+  experiment_name: "crop_disease_classification"
+  seed: 42
+
+data:
+  raw_dir: "data/raw_field_images"
+  processed_dir: "data/processed_splits"
+  train_split: 0.70
+  val_split: 0.15
+  test_field_split: 0.15
+  num_crops: 10
+  image_size: 256
+  batch_size: 32
+  num_workers: 4
+  # Real-world field augmentations
+  augmentations:
+    color_jitter: { brightness: 0.3, contrast: 0.3, saturation: 0.3, hue: 0.05 }
+    random_rotate_degrees: 30
+    random_crop_scale: [0.8, 1.0]
+    gaussian_blur_prob: 0.25
+    cutmix_prob: 0.3
+    mixup_alpha: 0.2
+
+mlflow:
+  tracking_uri: "file:./mlruns"
+  artifact_location: "./mlruns/artifacts"
+
+inference:
+  host: "0.0.0.0"
+  port: 8000
+  ood_threshold: 0.55
+  temperature_scaling: 1.15
+  device: "cuda" # falls back to cpu if unavailable

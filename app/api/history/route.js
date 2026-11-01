@@ -18,7 +18,7 @@ function validateScanResult(result) {
     return { ok: false, message: "अमान्य परिणाम।" };
   }
   const disease = typeof result.disease === "string" ? result.disease.trim() : "";
-  const crop_type = typeof result.crop_type === "string" ? result.crop_type.trim() : "";
+  const crop_type = typeof (result.crop_type || result.crop) === "string" ? (result.crop_type || result.crop).trim() : "";
   let confidence = result.confidence;
   if (typeof confidence === "string") {
     confidence = Number.parseFloat(confidence);
@@ -44,6 +44,7 @@ function validateScanResult(result) {
       organic_remedy: typeof result.organic_remedy === "string" ? result.organic_remedy : "",
       prevention: typeof result.prevention === "string" ? result.prevention : "",
       severity_reason: typeof result.severity_reason === "string" ? result.severity_reason : "",
+      thumbnail: result.thumbnail || null,
     },
   };
 }
@@ -51,12 +52,13 @@ function validateScanResult(result) {
 function mapEntry(doc) {
   return {
     id: String(doc._id),
-    crop: doc.crop_type || "",
+    crop: doc.crop_type || doc.crop || "",
     disease: doc.disease || "",
     confidence: typeof doc.confidence === "number" ? doc.confidence : 0,
     date: doc.createdAt ? doc.createdAt.toISOString() : null,
     severity: doc.severity || "",
     is_healthy: Boolean(doc.is_healthy),
+    thumbnail: doc.thumbnail || doc.resultSnapshot?.thumbnail || null,
   };
 }
 

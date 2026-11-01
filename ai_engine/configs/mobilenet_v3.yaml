@@ -1,0 +1,19 @@
+model:
+  architecture: "mobilenet_v3_large"
+  pretrained_weights: "imagenet1k"
+  backbone: "timm/mobilenetv3_large_100.ra_in1k"
+  embedding_dim: 960
+  dropout: 0.2
+  stochastic_depth: 0.1
+
+training:
+  epochs_stage1_head_only: 5
+  epochs_stage2_fine_tune: 20
+  learning_rate_head: 1.5e-3
+  learning_rate_backbone: 2.0e-4
+  weight_decay: 1.0e-4
+  label_smoothing: 0.1
+  scheduler: "cosine_annealing"
+  min_lr: 1.0e-6
+  early_stopping_patience: 5
+  gradient_clip_norm: 1.0
